@@ -44,6 +44,7 @@ module.exports.getAllUsers = async () => {
 
 module.exports.updateFriends = async (username, friends) => {
   friends = friends || [];
+  if (typeof friends === 'string') friends = [friends];
   try {
     const userData = await this.getUser(username);
     if (!userData) return null;
