@@ -1,0 +1,31 @@
+{% extends "navbar.html" %}
+
+{% block body %}
+
+    
+<main style="width: 100%; max-width: 600px; padding: 15px; margin: auto;">
+  <form id="device-form">
+    <h1 class="h3 mb-3 fw-normal">Device Information</h1>
+
+    <div class="form-floating">
+      <input type="text" class="form-control" id="deviceName" name="deviceName" placeholder="Device Name" pattern="[A-Za-z0-9]+" required>
+      <label for="devicename">Device Name (letters and numbers only)</label>
+      <div class="invalid-feedback">
+        Letters and numbers only, no spaces.
+      </div>
+    </div>
+    <div class="form-floating mt-3">
+      <input type="text" class="form-control" id="initials" name="initials" placeholder="AA" pattern="[A-Z]{2}" required>
+      <label for="initials">Initials</label>
+      <div class="invalid-feedback">
+        Initials must be two uppercase letters
+      </div>
+    </div>
+
+    <button class="btn btn-primary mt-3" type="submit">Add Device</button>
+  </form>
+</main>
+
+{% endblock %}
+
+{% block scripts %}<script src="/javascripts/addDevice.js"></script>{% endblock %}

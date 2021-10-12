@@ -1,0 +1,40 @@
+{% extends "navbar.html" %}
+
+{% block body %}
+
+    
+<main style="width: 100%; max-width: 600px; padding: 15px; margin: auto;">
+  <form id="device-form">
+    <h1 class="h3 mb-3 fw-normal">Device Information</h1>
+
+    <div class="form-floating">
+      <input type="text" class="form-control" id="deviceName" name="deviceName" placeholder="Device Name" pattern="[A-Za-z0-9]+" value="{{ deviceData.name }}" required>
+      <label for="devicename">Device Name (letters and numbers only)</label>
+      <div class="invalid-feedback">
+        Letters and numbers only, no spaces.
+      </div>
+    </div>
+    <div class="form-floating mt-3">
+      <input type="text" class="form-control" id="initials" name="initials" placeholder="AA" pattern="[A-Z]{2}" value="{{ deviceData.initials }}" required>
+      <label for="initials">Initials</label>
+      <div class="invalid-feedback">
+        Initials must be two uppercase letters
+      </div>
+    </div>
+
+    <div class="container pt-3">
+      <div class="row justify-items-start">
+        <div class="col-2">
+          <button class="btn btn-primary" type="submit">Save</button>
+        </div>
+        <div class="col-2">
+          <a id="delete-button" class="btn btn-danger" href="#" role="button">Delete</a>
+        </div>
+      </div>
+    </div>
+  </form>
+</main>
+
+{% endblock %}
+
+{% block scripts %}<script src="/javascripts/editDevice.js"></script>{% endblock %}

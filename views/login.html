@@ -1,0 +1,31 @@
+{% extends "navbar.html" %}
+
+{% block body %}
+
+    
+<main style="width: 100%; max-width: 330px; padding: 15px; margin: auto;">
+  <form id="login-form">
+    <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
+
+    <div class="form-floating">
+      <input type="text" class="form-control" id="username" name="username" placeholder="username" required>
+      <label for="username">Username</label>
+      <div class="invalid-feedback">
+        Username does not exist
+      </div>
+    </div>
+    <div class="form-floating">
+      <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+      <label for="password">Password</label>
+      <div class="invalid-feedback">
+        Password is incorrect.
+      </div>
+    </div>
+
+    <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
+  </form>
+</main>
+
+{% endblock %}
+
+{% block scripts %}<script src="/javascripts/login.js"></script>{% endblock %}
