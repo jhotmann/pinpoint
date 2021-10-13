@@ -50,7 +50,6 @@ services:
     volumes:
       - ./apps/pinpoint:/app/data
     environment:
-      - BASE_URL=pinpoint.${DOMAIN_NAME}
       - MQTT_HOST=pinpointmqtt.${DOMAIN_NAME}
       - ADMIN_PASSWORD=${PINPOINT_ADMIN_PASSWORD}
       - JWT_SECRET=${PINPOINT_JWT_SECRET}

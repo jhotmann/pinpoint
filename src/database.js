@@ -34,12 +34,24 @@ module.exports.getUser = async (username) => {
   }
 };
 
+module.exports.mwUser = async (req, res, next) => {
+  if (!req.pageData) req.pageData = {};
+  req.pageData.userData = await this.getUser(req.user.username);
+  next();
+};
+
 module.exports.getAllUsers = async () => {
   try {
     return await db.users.find({});
   } catch {
     return [];
   }
+};
+
+module.exports.mwAllUsers = async (req, res, next) => {
+  if (!req.pageData) req.pageData = {};
+  req.pageData.allUsers = await this.getAllUsers();
+  next();
 };
 
 module.exports.updateFriends = async (username, friends) => {
@@ -163,6 +175,12 @@ module.exports.getAllRegistrations = async () => {
   } catch {
     return [];
   }
+};
+
+module.exports.mwAllReg = async (req, res, next) => {
+  if (!req.pageData) req.pageData = {};
+  req.pageData.allRegistrations = await this.getAllRegistrations();
+  next();
 };
 
 module.exports.getRegistration = async (id) => {

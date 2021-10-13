@@ -4,19 +4,10 @@ const db = require('../src/database');
 
 const router = express.Router();
 
-/* GET user listing. */
-router.get('/', auth, async (req, res) => {
-  const { username } = req.user;
-  if (username === 'admin') {
-    const allUsers = await db.getAllUsers();
-    const allRegistrations = await db.getAllRegistrations();
-    const pageData = {
-      username,
-      allUsers,
-      allRegistrations,
-      baseUrl: process.env.BASE_URL,
-    };
-    res.render('admin.html', pageData);
+router.get('/', auth, db.mwAllUsers, db.mwAllReg, async (req, res) => {
+  if (req.user.username === 'admin') {
+    req.pageData.baseUrl = `${req.protocol}://${req.hostname}${req.hostname === 'localhost' ? ':8000' : ''}`;
+    res.render('admin.html', req.pageData);
   } else {
     res.sendStatus(403);
   }

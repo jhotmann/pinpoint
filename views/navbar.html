@@ -11,6 +11,7 @@
       <li class="nav-item">
         {% if username %}<a class="nav-link" href="/user">{{ username }}</a>{% else %}<a class="nav-link" href="/login">Login</a>{% endif %}
       </li>
+      {% if username %}<li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>{% endif %}
     </ul>
   </div>
 </div>
