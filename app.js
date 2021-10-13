@@ -21,6 +21,7 @@ app.use('/styles/js', express.static(path.join(__dirname, 'node_modules', 'boots
 
 app.use('/', require('./routes/index'));
 app.use('/login', require('./routes/login'));
+app.use('/logout', require('./routes/logout'));
 app.use('/admin', require('./routes/admin'));
 app.use('/user', require('./routes/user'));
 app.use('/register', require('./routes/register'));
