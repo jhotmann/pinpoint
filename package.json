@@ -3,7 +3,8 @@
   "version": "0.2.0",
   "private": true,
   "scripts": {
-    "start": "nodemon ./bin/www"
+    "start": "forever ./bin/www",
+    "dev": "nodemon ./bin/www"
   },
   "dependencies": {
     "aedes": "^0.46.1",

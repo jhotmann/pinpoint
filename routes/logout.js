@@ -1,9 +1,8 @@
 const express = require('express');
-const auth = require('../src/jwtAuth');
 
 const router = express.Router();
 
-router.get('/', auth, (req, res) => {
+router.get('/', (req, res) => {
   res.clearCookie('authorization');
   res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
   res.header('Expires', '-1');

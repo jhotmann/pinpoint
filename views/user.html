@@ -22,7 +22,7 @@
     {% endfor %}
   </tbody>
 </table>
-<a class="btn btn-primary" href="/user/add-device" role="button">Add</a>
+<a class="btn btn-primary" href="/user/add-device" role="button">Add Device</a>
 
 <h2 class="pt-3">Friends</h2>
 
@@ -41,7 +41,7 @@
   <button id="friend-save" class="btn btn-primary" type="submit">Save Friends</button>
 </form>
 
-<h2 class="pt-3">Groups (not ready yet)</h2>
+<h2 class="pt-3">Groups</h2>
 
 <table id="groups" class="table table-striped table-hover">
   <thead>
@@ -52,18 +52,57 @@
     </tr>
   </thead>
   <tbody>
-    {% for group in allGroups %}
+    {% for group in userGroups %}
     <tr>
       <th scope="row">{{ group.name }}</th>
-      <td>{{ group.members | join(", ") }}</td>
-      <td>{{ user.friends.length }}</td>
-      <td>{{ user.groups.length }}</td>
+      <td>{{ group.memberNames | join(", ") }}</td>
+      <td>
+        {% if group.isAdmin %}
+        <a class="btn btn-secondary" href="/user/edit-group/{{ group._id }}" role="button">Edit</a>
+        {% else %}
+          {% if group.accepted %}
+          <a class="btn btn-danger" href="/user/leave-group/{{ group._id }}" role="button">Leave</a>
+          {% else %}
+          <a class="btn btn-success" href="/user/accept-group/{{ group._id }}" role="button">Accept Invite</a> <a class="btn btn-danger" href="/user/leave-group/{{ group._id }}" role="button">Decline</a>
+          {% endif %}
+        {% endif %}
+      </td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
 
-<button type="button" class="btn btn-danger mt-5" data-bs-toggle="modal" data-bs-target="#delete-modal">Delete User Account</button>
+<div>
+  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#create-group-modal">Create Group</button>
+</div>
+
+<div>
+  <button type="button" class="btn btn-danger mt-5" data-bs-toggle="modal" data-bs-target="#delete-modal">Delete User Account</button>
+</div>
+
+<!-- Create Group Modal -->
+<div class="modal fade" id="create-group-modal" tabindex="-1" aria-labelledby="create-group-modal-label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="create-group-modal-label">Create Group</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="create-group-form">
+          <div class="form-floating">
+            <input type="text" class="form-control" id="groupName" name="groupName" placeholder="Group Name" required>
+            <label for="groupName">Group Name</label>
+            <div class="invalid-feedback">
+              Group name taken
+            </div>
+          </div>
+          <button class="btn btn-primary mt-2" type="submit">Create</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Delete Modal -->
 <div class="modal fade" id="delete-modal" tabindex="-1" aria-labelledby="delete-modal-label" aria-hidden="true">

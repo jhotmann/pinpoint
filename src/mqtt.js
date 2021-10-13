@@ -12,11 +12,13 @@ httpServer.listen(process.env.MQTT_PORT || 8888, () => {
   console.log(`Websocket server listening on port ${process.env.MQTT_PORT || 8888}`);
 });
 
+module.exports.publish = aedes.publish;
+
 aedes.authenticate = (client, username, password, callback) => {
   console.log(`Auth attempt by ${username}: ${password}`);
   const invalidUserPassword = new Error('Auth error');
   invalidUserPassword.returnCode = 4;
-  db.getUser(username)
+  db.getUserByName(username)
     .then((userData) => {
       if (!userData) {
         return callback(invalidUserPassword, null);
@@ -54,7 +56,7 @@ aedes.authorizePublish = async (client, packet, callback) => {
 
 async function publishToFriends(client, packet) {
   const username = clientMap[client.id];
-  const userData = await db.getUser(username);
+  const userData = await db.getUserByName(username);
   if (!userData) return;
   userData.friends.forEach((friend) => {
     console.log(`Forwarding packet to ${friend}`);
