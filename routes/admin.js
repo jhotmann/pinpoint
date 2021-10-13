@@ -34,4 +34,14 @@ router.get('/revoke-registration/:registrationId', auth, async (req, res) => {
   res.redirect(301, '/admin');
 });
 
+router.get('/delete-user/:userId', auth, async (req, res) => {
+  if (req.user.username === 'admin') {
+    await db.deleteUser(req.params.userId);
+    await db.deleteUserDevices(req.params.userId);
+    res.redirect('/admin');
+  } else {
+    res.sendStatus(403);
+  }
+});
+
 module.exports = router;

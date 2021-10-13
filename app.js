@@ -10,6 +10,7 @@ require('./src/mqtt');
 
 const app = express();
 nunjucks.configure('views', { express: app, autoescape: true });
+if (process.env.BEHIND_PROXY === 'true') app.set('trust proxy', true);
 
 app.use(logger('dev'));
 app.use(express.json());

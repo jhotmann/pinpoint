@@ -13,11 +13,11 @@
   </thead>
   <tbody>
     {% set urlRegExp = r/^owntracks:\/\/[^\/]/ %}
-    {% for device in userData.devices %}
+    {% for device in userDevices %}
     <tr>
       <th scope="row">{{ device.name }}</th>
       <th scope="row"><a class="btn btn-info" href="{{ device.configLink | replace(urlRegExp, 'owntracks:///c') }}" role="button">OwnTracks Link</a></th>
-      <td scope="row"><a class="btn btn-secondary" href="/user/edit-device/{{ device.name }}" role="button">Edit</a></td>
+      <td scope="row"><a class="btn btn-secondary" href="/user/edit-device/{{ device._id }}" role="button">Edit</a></td>
     </tr>
     {% endfor %}
   </tbody>
@@ -62,6 +62,27 @@
     {% endfor %}
   </tbody>
 </table>
+
+<button type="button" class="btn btn-danger mt-5" data-bs-toggle="modal" data-bs-target="#delete-modal">Delete User Account</button>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="delete-modal" tabindex="-1" aria-labelledby="delete-modal-label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="delete-modal-label">Delete User Account</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        This is a real delete, not like a Facebook delete. This action can't be undone!
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <a class="btn btn-danger" href="/user/delete-user" role="button">Delete</a>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}<script src="javascripts/user.js"></script>{% endblock %}
