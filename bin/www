@@ -6,6 +6,9 @@
 
 const http = require('http');
 const app = require('../app');
+const db = require('../src/database');
+
+(async () => { await db.dataMigration(); })();
 
 /**
  * Get port from environment and store in Express.

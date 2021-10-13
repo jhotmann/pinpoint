@@ -39,6 +39,7 @@
       <th scope="col">Devices</th>
       <th scope="col">Friends</th>
       <th scope="col">Groups</th>
+      <th scope="col">Manage</th>
     </tr>
   </thead>
   <tbody>
@@ -48,10 +49,30 @@
       <td>{{ user.devices.length }}</td>
       <td>{{ user.friends.length }}</td>
       <td>{{ user.groups.length }}</td>
+      <td><button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#delete-modal" data-bs-userId="{{ user._id }}">Delete</button></td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="delete-modal" tabindex="-1" aria-labelledby="delete-modal-label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="delete-modal-label">Delete User Account</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        This is a real delete, not like a Facebook delete. This action can't be undone!
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <a id="delete-modal-button" class="btn btn-danger" href="#" role="button">Delete</a>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}<script src="javascripts/admin.js"></script>{% endblock %}

@@ -4,6 +4,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 RUN npm i -g nodemon
+ENV BEHIND_PROXY=true
 
 COPY . .
 

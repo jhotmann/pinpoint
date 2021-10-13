@@ -11,4 +11,9 @@ $(() => {
       $('#username').addClass('is-valid');
     });
   });
+
+  $('#delete-modal').on('show.bs.modal', (event) => {
+    const userId = event.relatedTarget.getAttribute('data-bs-userId');
+    $('#delete-modal-button').attr('href', `/admin/delete-user/${userId}`);
+  });
 });

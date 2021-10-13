@@ -17,6 +17,7 @@
         "no-use-before-define": "off",
         "no-underscore-dangle": "off",
         "no-param-reassign": "warn",
-        "max-len": "off"
+        "max-len": "off",
+        "no-console": "off"
     }
 }

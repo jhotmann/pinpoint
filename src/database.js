@@ -1,3 +1,4 @@
+const async = require('async');
 const cryptoRandomString = require('crypto-random-string');
 const Datastore = require('nedb-promises');
 const ms = require('ms');
@@ -11,6 +12,7 @@ const databaseOptions = {
 const db = {
   users: Datastore.create({ filename: path.join('data', 'users.db'), ...databaseOptions }),
   registrations: Datastore.create({ filename: path.join('data', 'registrations.db'), ...databaseOptions }),
+  devices: Datastore.create({ filename: path.join('data', 'devices.db'), ...databaseOptions }),
 };
 
 // !!!! User !!!!
@@ -34,6 +36,7 @@ module.exports.getUser = async (username) => {
   }
 };
 
+// User Data Middleware - depends upon jwtAuth
 module.exports.mwUser = async (req, res, next) => {
   if (!req.pageData) req.pageData = {};
   req.pageData.userData = await this.getUser(req.user.username);
@@ -68,41 +71,62 @@ module.exports.updateFriends = async (username, friends) => {
   }
 };
 
-module.exports.addDevice = async (username, deviceName, initials) => {
+module.exports.deleteUser = async (_id) => {
   try {
-    const userData = await this.getUser(username);
-    if (userData && !userData.devices.find((device) => device.name === deviceName)) {
-      const deviceData = {
-        name: deviceName,
-        initials,
-        configLink: getDeviceConfig(userData, deviceName, initials),
-      };
-      const newUserData = await db.users
-        .update({ _id: userData._id }, { $push: { devices: deviceData } });
-      return newUserData;
-    }
-    return null;
+    return await db.users.remove({ _id });
   } catch (err) {
     console.log(err);
     return null;
   }
 };
 
-module.exports.updateDevice = async (username, originalDeviceName, newDeviceName, initials) => {
+// !!!! Devices !!!!
+
+module.exports.createDevice = async (name, initials, userData) => {
   try {
-    const userData = await this.getUser(username);
-    if (!userData) return null;
-    const newDevices = userData.devices.map((device) => {
-      if (device.name === originalDeviceName) {
-        device.name = newDeviceName;
-        device.initials = initials;
-        device.configLink = getDeviceConfig(userData, newDeviceName, initials);
-      }
-      return device;
+    const existing = await db.devices.findOne({ userId: userData._id, name });
+    if (existing) return null;
+    const configLink = getDeviceConfig(userData, name, initials);
+    return await db.devices.insert({
+      userId: userData._id,
+      name,
+      initials,
+      configLink,
     });
-    const newUserData = await db.users
-      .update({ _id: userData._id }, { $set: { devices: newDevices } });
-    return newUserData;
+  } catch (err) {
+    console.log(err);
+    return null;
+  }
+};
+
+module.exports.getDevice = async (_id) => {
+  try {
+    return await db.devices.findOne({ _id });
+  } catch {
+    return null;
+  }
+};
+
+module.exports.getUserDevices = async (userId) => {
+  try {
+    return await db.devices.find({ userId });
+  } catch {
+    return [];
+  }
+};
+
+// User Devices Middleware - depends upon mwUser
+module.exports.mwUserDevices = async (req, res, next) => {
+  if (req.pageData.userData) {
+    req.pageData.userDevices = await this.getUserDevices(req.pageData.userData._id);
+  }
+  next();
+};
+
+module.exports.updateDevice = async (_id, name, initials, userData) => {
+  try {
+    const configLink = getDeviceConfig(userData, name, initials);
+    return await db.devices.update({ _id }, { $set: { name, initials, configLink } });
   } catch (err) {
     console.log(err);
     return null;
@@ -143,14 +167,19 @@ function getDeviceConfig(userData, deviceName, initials) {
   return `owntracks:///config?inline=${configBuffer.toString('base64')}`;
 }
 
-module.exports.deleteDevice = async (username, deviceName) => {
+module.exports.deleteDevice = async (_id) => {
   try {
-    const userData = await this.getUser(username);
-    if (!userData) return null;
-    const newDevices = userData.devices.filter((device) => device.name !== deviceName) || [];
-    return await db.users.update({ _id: userData._id }, { $set: { devices: newDevices } });
+    return await db.devices.remove({ _id });
   } catch (err) {
     console.log(err);
+    return null;
+  }
+};
+
+module.exports.deleteUserDevices = async (userId) => {
+  try {
+    return await db.devices.remove({ userId }, { multi: true });
+  } catch {
     return null;
   }
 };
@@ -193,4 +222,22 @@ module.exports.getRegistration = async (id) => {
 
 module.exports.useRegistration = async (_id) => {
   await db.registrations.update({ _id }, { $set: { used: true } });
+};
+
+// !!!! Data Migration !!!!
+
+module.exports.dataMigration = async () => {
+  console.log('Checking for any data migrations');
+  const allUsers = await this.getAllUsers();
+
+  // Move devices from user entry to own table
+  async.eachSeries(allUsers.filter((u) => u.devices), async (user) => {
+    async.eachSeries(user.devices, async (device) => {
+      console.log(`Moving device ${device.name} to devices table`);
+      await this.createDevice(device.name, device.initials, user);
+    });
+    await db.users.update({ _id: user._id }, { $unset: { devices: true } });
+  });
+
+  console.log('Data migrations complete');
 };
