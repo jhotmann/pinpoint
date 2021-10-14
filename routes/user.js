@@ -1,4 +1,5 @@
 const async = require('async');
+const bcrypt = require('bcrypt');
 const express = require('express');
 const db = require('../src/database');
 const mqtt = require('../src/mqtt');
@@ -79,6 +80,17 @@ router.post('/update-friends', db.mwUser, db.mwUserDevices, async (req, res) => 
 });
 
 // !!!! danger !!!!
+
+router.post('/reset-password', db.mwUser, async (req, res) => {
+  const { password } = req.body;
+  const hash = await bcrypt.hash(password, 15);
+  const result = await db.updatePassword(req.pageData.userData._id, hash);
+  if (result) {
+    res.send('Reset Successful');
+  } else {
+    res.send('Error');
+  }
+});
 
 router.get('/delete-user', db.mwUser, db.mwUserDevices, db.mwUserGroups, async (req, res) => {
   await db.deleteUser(req.pageData.userData._id);

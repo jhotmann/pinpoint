@@ -8,10 +8,25 @@
   </button>
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav me-auto mb-2 mb-lg-0 justify-content-end">
+      {% if username %}
       <li class="nav-item">
-        {% if username %}<a class="nav-link" href="/user">{{ username }}</a>{% else %}<a class="nav-link" href="/login">Login</a>{% endif %}
+        <a class="nav-link" href="/user">{{ username }}</a>
       </li>
-      {% if username %}<li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>{% endif %}
+      {% else %}
+      <li class="nav-item">
+        <a class="nav-link" href="/login">Login</a>
+      </li>
+      {% endif %}
+      {%if userData and userData.isAdmin %}
+      <li class="nav-item">
+        <a class="nav-link" href="/admin">Admin</a>
+      </li>
+      {% endif %}
+      {% if username %}
+      <li class="nav-item">
+        <a class="nav-link" href="/logout">Logout</a>
+      </li>
+      {% endif %}
     </ul>
   </div>
 </div>
