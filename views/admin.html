@@ -15,7 +15,7 @@
     </div>
   </div>
 </form>
-<table id="registration-table" class="table table-striped table-hover">
+<table id="registration-table" class="table table-striped table-hover table-responsive align-middle">
   <thead>
     <tr>
       <th scope="col">URL</th>
@@ -32,7 +32,7 @@
   </tbody>
 </table>
 <h2>Users</h2>
-<table id="user-table" class="table table-striped table-hover">
+<table id="user-table" class="table table-striped table-hover table-responsive align-middle">
   <thead>
     <tr>
       <th scope="col">Username</th>
@@ -46,10 +46,16 @@
     {% for user in allUsers %}
     <tr>
       <th scope="row">{{ user.username }}</th>
-      <td>{{ user.devices.length }}</td>
+      <td>{{ allDevices | arrayFilter('userId', user._id) | length }}</td>
       <td>{{ user.friends.length }}</td>
       <td>{{ user.groups.length }}</td>
-      <td><button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#delete-modal" data-bs-userId="{{ user._id }}">Delete</button></td>
+      <td>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" id="{{ user._id }}-admin-switch" value="{{ user._id }}"{% if user.isAdmin %} checked{% endif %}>
+          <label class="form-check-label" for="{{ user._id }}-admin-switch">Admin</label>
+        </div>
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#delete-modal" data-bs-userId="{{ user._id }}">Delete</button>
+      </td>
     </tr>
     {% endfor %}
   </tbody>

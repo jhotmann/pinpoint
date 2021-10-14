@@ -3,7 +3,7 @@ const db = require('../src/database');
 
 const router = express.Router();
 
-router.get('/', db.mwAllUsers, db.mwAllReg, async (req, res) => {
+router.get('/', db.mwUser, db.mwAllUsers, db.mwAllReg, db.mwAllDevices, async (req, res) => {
   req.pageData.baseUrl = `${req.protocol}://${req.hostname}${req.hostname === 'localhost' ? ':8000' : ''}`;
   res.render('admin.html', req.pageData);
 });
@@ -19,6 +19,11 @@ router.get('/revoke-registration/:registrationId', async (req, res) => {
     await db.useRegistration(registrationData._id);
   }
   res.redirect(301, '/admin');
+});
+
+router.post('/elevate-user/:userId/:admin', async (req, res) => {
+  await db.setUserAdminStatus(req.params.userId, req.params.admin === 'true');
+  res.send('Done');
 });
 
 router.get('/delete-user/:userId', async (req, res) => {

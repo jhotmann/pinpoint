@@ -88,6 +88,25 @@ module.exports.dismissHelp = async (_id) => {
     return null;
   }
 };
+
+module.exports.setUserAdminStatus = async (_id, isAdmin) => {
+  try {
+    return await db.users.update({ _id }, { $set: { isAdmin } });
+  } catch (err) {
+    console.log(err);
+    return null;
+  }
+};
+
+module.exports.updatePassword = async (_id, passwordHash) => {
+  try {
+    return await db.users.update({ _id }, { $set: { passwordHash } });
+  } catch (err) {
+    console.log(err);
+    return null;
+  }
+};
+
 module.exports.deleteUser = async (_id) => {
   try {
     return await db.users.remove({ _id });
@@ -114,6 +133,21 @@ module.exports.createDevice = async (name, initials, userData) => {
     console.log(err);
     return null;
   }
+};
+
+module.exports.getAllDevices = async () => {
+  try {
+    return await db.devices.find({});
+  } catch {
+    return [];
+  }
+};
+
+// Devices Middleware - depends upon mwUser
+module.exports.mwAllDevices = async (req, res, next) => {
+  if (!req.pageData) req.pageData = {};
+  req.pageData.allDevices = await this.getAllDevices();
+  next();
 };
 
 module.exports.getDevice = async (_id) => {

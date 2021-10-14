@@ -44,17 +44,17 @@ router.get('/remove-user/:groupId/:userId', db.mwUser, db.mwGroup, isGroupAdmin,
 
 router.get('/accept/:groupId', db.mwUser, async (req, res) => {
   await db.acceptGroup(req.params.groupId, req.pageData.userData._id);
-  res.redirect('/user');
+  res.redirect('/user#groups');
 });
 
 router.get('/leave/:groupId', db.mwUser, async (req, res) => {
   await db.leaveGroup(req.params.groupId, req.pageData.userData._id);
-  res.redirect('/user');
+  res.redirect('/user#groups');
 });
 
 router.get('/delete/:groupId', db.mwUser, db.mwGroup, isGroupAdmin, async (req, res) => {
   await db.deleteGroup(req.params.groupId);
-  res.redirect('/user');
+  res.redirect('/user#groups');
 });
 
 module.exports = router;

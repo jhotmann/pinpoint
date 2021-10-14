@@ -16,4 +16,10 @@ $(() => {
     const userId = event.relatedTarget.getAttribute('data-bs-userId');
     $('#delete-modal-button').attr('href', `/admin/delete-user/${userId}`);
   });
+
+  $(':checkbox').on('change', (event) => {
+    if (event.target.id.endsWith('-admin-switch')) {
+      $.post(`/admin/elevate-user/${event.target.value}/${event.target.checked}`);
+    }
+  });
 });

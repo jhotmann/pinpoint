@@ -11,7 +11,10 @@ require('dotenv').config();
 require('./src/mqtt');
 
 const app = express();
-nunjucks.configure('views', { express: app, autoescape: true });
+
+const nunjucksEnv = nunjucks.configure('views', { express: app, autoescape: true });
+nunjucksEnv.addFilter('arrayFilter', (arr, prop, value) => arr.filter((a) => a[prop] === value));
+
 if (process.env.BEHIND_PROXY === 'true') app.set('trust proxy', true);
 
 app.use(logger('dev'));
