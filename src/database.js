@@ -80,6 +80,14 @@ module.exports.updateFriends = async (username, friends) => {
   }
 };
 
+module.exports.dismissHelp = async (_id) => {
+  try {
+    return await db.users.update({ _id }, { $set: { helpDismissed: true } });
+  } catch (err) {
+    console.log(err);
+    return null;
+  }
+};
 module.exports.deleteUser = async (_id) => {
   try {
     return await db.users.remove({ _id });

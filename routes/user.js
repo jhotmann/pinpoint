@@ -14,6 +14,11 @@ router.get('/', db.mwUser, db.mwUserDevices, db.mwAllUsers, db.mwUserGroups, asy
   }
 });
 
+router.get('/dismiss-help', db.mwUser, async (req, res) => {
+  await db.dismissHelp(req.pageData.userData._id);
+  res.redirect('/user');
+});
+
 // !!!! devices !!!!
 
 router.get('/add-device', async (req, res) => {
