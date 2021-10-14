@@ -20,7 +20,7 @@ router.post('/', async (req, res) => {
       res.send('Invalid Password');
     }
   } else {
-    const userData = await db.getUser(username);
+    const userData = await db.getUserByName(username);
     if (userData) {
       const match = await bcrypt.compare(password, userData.passwordHash);
       if (match) {

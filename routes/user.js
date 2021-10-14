@@ -1,11 +1,12 @@
+const async = require('async');
 const express = require('express');
-const auth = require('../src/jwtAuth');
 const db = require('../src/database');
+const mqtt = require('../src/mqtt');
 
 const router = express.Router();
 
 /* GET user listing. */
-router.get('/', auth, db.mwUser, db.mwUserDevices, db.mwAllUsers, async (req, res) => {
+router.get('/', db.mwUser, db.mwUserDevices, db.mwAllUsers, db.mwUserGroups, async (req, res) => {
   if (req.user.username === 'admin') {
     res.redirect('/admin');
   } else {
@@ -13,11 +14,13 @@ router.get('/', auth, db.mwUser, db.mwUserDevices, db.mwAllUsers, async (req, re
   }
 });
 
-router.get('/add-device', auth, async (req, res) => {
+// !!!! devices !!!!
+
+router.get('/add-device', async (req, res) => {
   res.render('addDevice.html', req.pageData);
 });
 
-router.post('/add-device', auth, db.mwUser, async (req, res) => {
+router.post('/add-device', db.mwUser, async (req, res) => {
   const result = await db.createDevice(req.body.deviceName, req.body.initials, req.pageData.userData);
   if (result) {
     res.send('Add Successful');
@@ -26,7 +29,7 @@ router.post('/add-device', auth, db.mwUser, async (req, res) => {
   }
 });
 
-router.get('/edit-device/:deviceId', auth, db.mwUser, async (req, res) => {
+router.get('/edit-device/:deviceId', db.mwUser, async (req, res) => {
   req.pageData.deviceData = await db.getDevice(req.params.deviceId);
   if (req.pageData.deviceData.userId === req.pageData.userData._id) {
     res.render('editDevice.html', req.pageData);
@@ -35,7 +38,7 @@ router.get('/edit-device/:deviceId', auth, db.mwUser, async (req, res) => {
   }
 });
 
-router.post('/edit-device/:deviceId', auth, db.mwUser, db.mwUserDevices, async (req, res) => {
+router.post('/edit-device/:deviceId', db.mwUser, db.mwUserDevices, async (req, res) => {
   if (req.pageData.userDevices.find((d) => d._id === req.params.deviceId)) {
     const result = await db.updateDevice(req.params.deviceId, req.body.deviceName, req.body.initials, req.pageData.userData);
     if (result) {
@@ -48,15 +51,21 @@ router.post('/edit-device/:deviceId', auth, db.mwUser, db.mwUserDevices, async (
   }
 });
 
-router.get('/delete-device/:deviceId', auth, db.mwUser, db.mwUserDevices, async (req, res) => {
+router.get('/delete-device/:deviceId', db.mwUser, db.mwUserDevices, async (req, res) => {
   if (req.pageData.userDevices.find((d) => d._id === req.params.deviceId)) {
     await db.deleteDevice(req.params.deviceId);
   }
   res.redirect(301, '/user');
 });
 
-router.post('/update-friends', auth, async (req, res) => {
-  const result = await db.updateFriends(req.user.username, req.body.friends);
+// !!!! friends !!!!
+
+router.post('/update-friends', db.mwUser, db.mwUserDevices, async (req, res) => {
+  let friends = req.body.friends || [];
+  if (typeof friends === 'string') friends = [friends];
+  const removedFriends = req.pageData.userData.friends.filter((friend) => !friends.includes(friend));
+  clearLocations(req.pageData.userData.username, removedFriends, req.pageData.userDevices);
+  const result = await db.updateFriends(req.user.username, friends);
   if (result) {
     res.send('Edit Successful');
   } else {
@@ -64,10 +73,27 @@ router.post('/update-friends', auth, async (req, res) => {
   }
 });
 
-router.get('/delete-user', auth, db.mwUser, async (req, res) => {
+// !!!! danger !!!!
+
+router.get('/delete-user', db.mwUser, db.mwUserDevices, db.mwUserGroups, async (req, res) => {
   await db.deleteUser(req.pageData.userData._id);
   await db.deleteUserDevices(req.pageData.userData._id);
+  await async.eachSeries(req.pageData.userGroups, async (group) => { await db.leaveGroup(group._id, req.pageData.userData._id); });
+  clearLocations(req.pageData.userData.username, req.pageData.userData.friends, req.pageData.userDevices);
   res.redirect('/');
 });
+
+function clearLocations(username, friends, devices) {
+  friends.forEach((friend) => {
+    devices.forEach((device) => {
+      console.log(`Clearing topic: ${friend}/${username}/${device.name}`);
+      try {
+        mqtt.publish({ cmd: 'publish', topic: `${friend}/${username}/${device.name}` }, (err) => { console.error(err); });
+      } catch {
+        // The topic seems to be cleared even though it throws an exception
+      }
+    });
+  });
+}
 
 module.exports = router;

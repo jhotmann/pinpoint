@@ -3,6 +3,8 @@ const express = require('express');
 const logger = require('morgan');
 const nunjucks = require('nunjucks');
 const path = require('path');
+const auth = require('./src/jwtAuth');
+const isAdmin = require('./src/adminAuth');
 
 require('dotenv').config();
 
@@ -22,9 +24,10 @@ app.use('/styles/js', express.static(path.join(__dirname, 'node_modules', 'boots
 
 app.use('/', require('./routes/index'));
 app.use('/login', require('./routes/login'));
-app.use('/logout', require('./routes/logout'));
-app.use('/admin', require('./routes/admin'));
-app.use('/user', require('./routes/user'));
+app.use('/logout', auth, require('./routes/logout'));
+app.use('/admin', auth, isAdmin, require('./routes/admin'));
+app.use('/user', auth, require('./routes/user'));
+app.use('/group', auth, require('./routes/group'));
 app.use('/register', require('./routes/register'));
 
 module.exports = app;

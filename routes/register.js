@@ -19,7 +19,7 @@ router.post('/:registrationId', async (req, res) => {
   const registrationData = await db.getRegistration(req.params.registrationId);
   if (registrationValid(registrationData)) {
     const { username, password } = req.body;
-    const userData = await db.getUser(username);
+    const userData = await db.getUserByName(username);
     if (userData) {
       res.send('Username Taken');
     } else {

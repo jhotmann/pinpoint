@@ -13,6 +13,7 @@ const db = {
   users: Datastore.create({ filename: path.join('data', 'users.db'), ...databaseOptions }),
   registrations: Datastore.create({ filename: path.join('data', 'registrations.db'), ...databaseOptions }),
   devices: Datastore.create({ filename: path.join('data', 'devices.db'), ...databaseOptions }),
+  groups: Datastore.create({ filename: path.join('data', 'groups.db'), ...databaseOptions }),
 };
 
 // !!!! User !!!!
@@ -28,7 +29,15 @@ module.exports.createUser = async (username, passwordHash) => {
   return userData._id;
 };
 
-module.exports.getUser = async (username) => {
+module.exports.getUser = async (_id) => {
+  try {
+    return await db.users.findOne({ _id });
+  } catch {
+    return null;
+  }
+};
+
+module.exports.getUserByName = async (username) => {
   try {
     return await db.users.findOne({ username });
   } catch (err) {
@@ -39,7 +48,7 @@ module.exports.getUser = async (username) => {
 // User Data Middleware - depends upon jwtAuth
 module.exports.mwUser = async (req, res, next) => {
   if (!req.pageData) req.pageData = {};
-  req.pageData.userData = await this.getUser(req.user.username);
+  req.pageData.userData = await this.getUserByName(req.user.username);
   next();
 };
 
@@ -61,7 +70,7 @@ module.exports.updateFriends = async (username, friends) => {
   friends = friends || [];
   if (typeof friends === 'string') friends = [friends];
   try {
-    const userData = await this.getUser(username);
+    const userData = await this.getUserByName(username);
     if (!userData) return null;
     const newUserData = await db.users.update({ _id: userData._id }, { $set: { friends } });
     return newUserData;
@@ -179,6 +188,98 @@ module.exports.deleteDevice = async (_id) => {
 module.exports.deleteUserDevices = async (userId) => {
   try {
     return await db.devices.remove({ userId }, { multi: true });
+  } catch {
+    return null;
+  }
+};
+
+// !!!! Groups !!!!
+
+module.exports.createGroup = async (name, userData) => {
+  try {
+    const existing = await db.groups.findOne({ name });
+    if (existing) return null;
+    return await db.groups.insert({
+      adminId: userData._id,
+      name,
+      members: [{ userId: userData._id, accepted: true }],
+    });
+  } catch {
+    return null;
+  }
+};
+
+module.exports.getGroup = async (_id) => {
+  try {
+    return await db.groups.findOne({ _id });
+  } catch {
+    return null;
+  }
+};
+
+// Group Data middleware - depends upon db.mwUser and expects :groupId in the route
+module.exports.mwGroup = async (req, res, next) => {
+  if (!req.pageData) req.pageData = {};
+  req.pageData.groupData = await this.getGroup(req.params.groupId);
+  req.pageData.groupData.members = await async.mapSeries(req.pageData.groupData.members, async (member) => {
+    const userData = await this.getUser(member.userId);
+    if (userData) {
+      member.username = userData.username;
+    } else {
+      member.username = 'USER DELETED';
+    }
+    return member;
+  });
+  req.pageData.groupData.memberNames = await async.mapSeries(req.pageData.groupData.members, async (member) => member.username);
+  next();
+};
+
+module.exports.getUserGroups = async (userId) => {
+  try {
+    return await db.groups.find({ $or: [{ adminId: userId }, { members: { $elemMatch: { userId } } }] });
+  } catch {
+    return null;
+  }
+};
+
+// User Groups Middleware - depends upon mwUser
+module.exports.mwUserGroups = async (req, res, next) => {
+  const userId = req.pageData.userData._id;
+  if (req.pageData.userData) {
+    const userGroups = await this.getUserGroups(userId);
+    req.pageData.userGroups = await async.mapSeries(userGroups, async (group) => {
+      group.memberNames = await async.mapSeries(group.members, async (member) => {
+        const userData = await this.getUser(member.userId);
+        return userData.username;
+      });
+      group.isAdmin = group.adminId === userId;
+      group.accepted = group.members.find((member) => member.userId === userId).accepted;
+      return group;
+    });
+  }
+  next();
+};
+
+module.exports.inviteToGroup = async (_id, userId) => {
+  try {
+    return await db.groups.update({ _id }, { $addToSet: { members: { userId, accepted: false } } });
+  } catch {
+    return null;
+  }
+};
+
+module.exports.acceptGroup = async (_id, userId) => {
+  try {
+    await db.groups.update({ _id }, { $pull: { members: { userId, accepted: false } } });
+    return await db.groups.update({ _id }, { $addToSet: { members: { userId, accepted: true } } });
+  } catch {
+    return null;
+  }
+};
+
+module.exports.leaveGroup = async (_id, userId) => {
+  try {
+    return await db.groups.update({ _id }, { $pull: { members: { userId } } });
   } catch {
     return null;
   }
