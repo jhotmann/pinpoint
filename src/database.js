@@ -244,20 +244,25 @@ module.exports.getUserGroups = async (userId) => {
 
 // User Groups Middleware - depends upon mwUser
 module.exports.mwUserGroups = async (req, res, next) => {
-  const userId = req.pageData.userData._id;
-  if (req.pageData.userData) {
-    const userGroups = await this.getUserGroups(userId);
-    req.pageData.userGroups = await async.mapSeries(userGroups, async (group) => {
-      group.memberNames = await async.mapSeries(group.members, async (member) => {
-        const userData = await this.getUser(member.userId);
-        return userData.username;
+  if (!req.pageData.userData) {
+    req.pageData.userGroups = [];
+    next();
+  } else {
+    const userId = req.pageData.userData._id;
+    if (req.pageData.userData) {
+      const userGroups = await this.getUserGroups(userId);
+      req.pageData.userGroups = await async.mapSeries(userGroups, async (group) => {
+        group.memberNames = await async.mapSeries(group.members, async (member) => {
+          const userData = await this.getUser(member.userId);
+          return userData.username;
+        });
+        group.isAdmin = group.adminId === userId;
+        group.accepted = group.members.find((member) => member.userId === userId).accepted;
+        return group;
       });
-      group.isAdmin = group.adminId === userId;
-      group.accepted = group.members.find((member) => member.userId === userId).accepted;
-      return group;
-    });
+    }
+    next();
   }
-  next();
 };
 
 module.exports.inviteToGroup = async (_id, userId) => {
@@ -281,6 +286,15 @@ module.exports.leaveGroup = async (_id, userId) => {
   try {
     return await db.groups.update({ _id }, { $pull: { members: { userId } } });
   } catch {
+    return null;
+  }
+};
+
+module.exports.deleteGroup = async (_id) => {
+  try {
+    return await db.groups.remove({ _id });
+  } catch (err) {
+    console.log(err);
     return null;
   }
 };

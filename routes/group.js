@@ -52,4 +52,9 @@ router.get('/leave/:groupId', db.mwUser, async (req, res) => {
   res.redirect('/user');
 });
 
+router.get('/delete/:groupId', db.mwUser, db.mwGroup, isGroupAdmin, async (req, res) => {
+  await db.deleteGroup(req.params.groupId);
+  res.redirect('/user');
+});
+
 module.exports = router;
