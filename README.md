@@ -2,10 +2,14 @@
 
 A server for [OwnTracks](https://owntracks.org/) with several enhancements over a standard MQTT broker:
 
-- Generate Registration Links
-- Choose which users can see your location
+- User Management
+- Generate registration links
+- Location sharing management
 - Device management
-- Groups (coming soon)
+- Groups
+
+![Screenshot 2021-10-14 at 11-51-01 Pinpoint Server](https://user-images.githubusercontent.com/9577371/137370552-5cf96933-d52b-4324-b404-dec8df98c4b9.png)
+
 
 ## Installation
 
