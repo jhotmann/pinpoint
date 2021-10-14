@@ -48,7 +48,7 @@
       <th scope="row">{{ user.username }}</th>
       <td>{{ allDevices | arrayFilter('userId', user._id) | length }}</td>
       <td>{{ user.friends.length }}</td>
-      <td>{{ user.groups.length }}</td>
+      <td>{{ allGroups | arrayFilterPropIncludes('members', 'userId', user._id) | length }}</td>
       <td>
         <div class="form-check form-switch">
           <input class="form-check-input" type="checkbox" role="switch" id="{{ user._id }}-admin-switch" value="{{ user._id }}"{% if user.isAdmin %} checked{% endif %}>

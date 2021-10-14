@@ -3,7 +3,7 @@ const db = require('../src/database');
 
 const router = express.Router();
 
-router.get('/', db.mwUser, db.mwAllUsers, db.mwAllReg, db.mwAllDevices, async (req, res) => {
+router.get('/', db.mwUser, db.mwAllUsers, db.mwAllReg, db.mwAllDevices, db.mwAllGroups, async (req, res) => {
   req.pageData.baseUrl = `${req.protocol}://${req.hostname}${req.hostname === 'localhost' ? ':8000' : ''}`;
   res.render('admin.html', req.pageData);
 });
