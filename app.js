@@ -14,6 +14,15 @@ const app = express();
 
 const nunjucksEnv = nunjucks.configure('views', { express: app, autoescape: true });
 nunjucksEnv.addFilter('arrayFilter', (arr, prop, value) => arr.filter((a) => a[prop] === value));
+nunjucksEnv.addFilter('arrayFilterPropIncludes', (arr, prop, subprop, value) => {
+  if (subprop && !value) {
+    return arr.filter((a) => a[prop].includes(subprop));
+  }
+  if (subprop && value) {
+    return arr.filter((a) => a[prop].find((p) => p[subprop] === value));
+  }
+  return [];
+});
 
 if (process.env.BEHIND_PROXY === 'true') app.set('trust proxy', true);
 

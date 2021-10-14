@@ -251,6 +251,21 @@ module.exports.createGroup = async (name, userData) => {
   }
 };
 
+module.exports.getAllGroups = async () => {
+  try {
+    return await db.groups.find({});
+  } catch {
+    return [];
+  }
+};
+
+// Devices Middleware - depends upon mwUser
+module.exports.mwAllGroups = async (req, res, next) => {
+  if (!req.pageData) req.pageData = {};
+  req.pageData.allGroups = await this.getAllGroups();
+  next();
+};
+
 module.exports.getGroup = async (_id) => {
   try {
     return await db.groups.findOne({ _id });
