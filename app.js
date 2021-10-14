@@ -27,6 +27,7 @@ app.use('/login', require('./routes/login'));
 app.use('/logout', auth, require('./routes/logout'));
 app.use('/admin', auth, isAdmin, require('./routes/admin'));
 app.use('/user', auth, require('./routes/user'));
+app.use('/group', auth, require('./routes/group'));
 app.use('/register', require('./routes/register'));
 
 module.exports = app;

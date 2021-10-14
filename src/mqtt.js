@@ -1,4 +1,5 @@
 const aedes = require('aedes')();
+const async = require('async');
 const bcrypt = require('bcrypt');
 const httpServer = require('http').createServer();
 const ws = require('websocket-stream');
@@ -47,8 +48,8 @@ aedes.authorizePublish = async (client, packet, callback) => {
   const username = clientMap[client.id];
   console.log(`${client.id} (${username}) published to ${packet.topic}: ${packet.payload}`);
   if (packet.topic.startsWith(`owntracks/${username}/`)) {
-    await publishToFriends(client, packet);
     callback(null);
+    await publishToFriends(client, packet);
   } else {
     callback(new Error('Invalid topic'));
   }
@@ -58,15 +59,23 @@ async function publishToFriends(client, packet) {
   const username = clientMap[client.id];
   const userData = await db.getUserByName(username);
   if (!userData) return;
-  userData.friends.forEach((friend) => {
+  const { friends } = userData;
+  const groups = await db.getUserGroups(userData._id);
+  await async.eachSeries(groups, async (group) => {
+    await async.eachSeries(group.members, async (member) => {
+      if (member.accepted) {
+        const memberData = await db.getUser(member.userId);
+        if (memberData && !friends.includes(memberData.username)) friends.push(memberData.username);
+      }
+    });
+  });
+  if (!friends.includes(username)) friends.push(username);
+  friends.forEach((friend) => {
     console.log(`Forwarding packet to ${friend}`);
     const newPacket = { ...packet };
     newPacket.topic = newPacket.topic.replace(/^owntracks/g, friend);
     aedes.publish(newPacket);
   });
-  const userPacket = { ...packet };
-  userPacket.topic = userPacket.topic.replace(/^owntracks/g, username);
-  aedes.publish(userPacket);
 }
 
 aedes.authorizeSubscribe = (client, subscription, callback) => {

@@ -1,3 +1,4 @@
+const async = require('async');
 const express = require('express');
 const db = require('../src/database');
 const mqtt = require('../src/mqtt');
@@ -72,32 +73,12 @@ router.post('/update-friends', db.mwUser, db.mwUserDevices, async (req, res) => 
   }
 });
 
-// !!!! groups !!!!
-
-router.post('/create-group', db.mwUser, async (req, res) => {
-  const result = await db.createGroup(req.body.groupName, req.pageData.userData);
-  if (result) {
-    res.send('Add Successful');
-  } else {
-    res.send('Error');
-  }
-});
-
-router.get('/accept-group/:groupId', db.mwUser, async (req, res) => {
-  await db.acceptGroup(req.params.groupId, req.pageData.userData._id);
-  res.redirect('/user');
-});
-
-router.get('/leave-group/:groupId', db.mwUser, async (req, res) => {
-  await db.leaveGroup(req.params.groupId, req.pageData.userData._id);
-  res.redirect('/user');
-});
-
 // !!!! danger !!!!
 
-router.get('/delete-user', db.mwUser, db.mwUserDevices, async (req, res) => {
+router.get('/delete-user', db.mwUser, db.mwUserDevices, db.mwUserGroups, async (req, res) => {
   await db.deleteUser(req.pageData.userData._id);
   await db.deleteUserDevices(req.pageData.userData._id);
+  await async.eachSeries(req.pageData.userGroups, async (group) => { await db.leaveGroup(group._id, req.pageData.userData._id); });
   clearLocations(req.pageData.userData.username, req.pageData.userData.friends, req.pageData.userDevices);
   res.redirect('/');
 });

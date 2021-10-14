@@ -15,7 +15,7 @@ $(() => {
   $('#create-group-form').on('submit', (event) => {
     event.preventDefault();
     $('#groupName').removeClass('is-invalid');
-    $.post('/user/create-group', $('#create-group-form').serialize(), (result) => {
+    $.post('/group/create', $('#create-group-form').serialize(), (result) => {
       if (result === 'Add Successful') {
         window.location.reload(true);
       } else {

@@ -58,12 +58,12 @@
       <td>{{ group.memberNames | join(", ") }}</td>
       <td>
         {% if group.isAdmin %}
-        <a class="btn btn-secondary" href="/user/edit-group/{{ group._id }}" role="button">Edit</a>
+        <a class="btn btn-secondary" href="/group/edit/{{ group._id }}" role="button">Edit</a>
         {% else %}
           {% if group.accepted %}
-          <a class="btn btn-danger" href="/user/leave-group/{{ group._id }}" role="button">Leave</a>
+          <a class="btn btn-danger" href="/group/leave/{{ group._id }}" role="button">Leave</a>
           {% else %}
-          <a class="btn btn-success" href="/user/accept-group/{{ group._id }}" role="button">Accept Invite</a> <a class="btn btn-danger" href="/user/leave-group/{{ group._id }}" role="button">Decline</a>
+          <a class="btn btn-success" href="/group/accept/{{ group._id }}" role="button">Accept Invite</a> <a class="btn btn-danger" href="/group/leave/{{ group._id }}" role="button">Decline</a>
           {% endif %}
         {% endif %}
       </td>

@@ -217,6 +217,23 @@ module.exports.getGroup = async (_id) => {
   }
 };
 
+// Group Data middleware - depends upon db.mwUser and expects :groupId in the route
+module.exports.mwGroup = async (req, res, next) => {
+  if (!req.pageData) req.pageData = {};
+  req.pageData.groupData = await this.getGroup(req.params.groupId);
+  req.pageData.groupData.members = await async.mapSeries(req.pageData.groupData.members, async (member) => {
+    const userData = await this.getUser(member.userId);
+    if (userData) {
+      member.username = userData.username;
+    } else {
+      member.username = 'USER DELETED';
+    }
+    return member;
+  });
+  req.pageData.groupData.memberNames = await async.mapSeries(req.pageData.groupData.members, async (member) => member.username);
+  next();
+};
+
 module.exports.getUserGroups = async (userId) => {
   try {
     return await db.groups.find({ $or: [{ adminId: userId }, { members: { $elemMatch: { userId } } }] });
@@ -241,6 +258,14 @@ module.exports.mwUserGroups = async (req, res, next) => {
     });
   }
   next();
+};
+
+module.exports.inviteToGroup = async (_id, userId) => {
+  try {
+    return await db.groups.update({ _id }, { $addToSet: { members: { userId, accepted: false } } });
+  } catch {
+    return null;
+  }
 };
 
 module.exports.acceptGroup = async (_id, userId) => {
