@@ -29,7 +29,7 @@ module.exports.isAuthenticated = (req, res, next) => {
       next();
     });
   } else {
-    res.redirect(301, '/login');
+    res.redirect('/login');
   }
 };
 

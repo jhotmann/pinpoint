@@ -99,7 +99,5 @@ describe('User Management', () => {
     expect(response.statusCode).toBe(302);
     jester = await User.get(jester._id);
     expect(jester).toBe(null);
-    // temp
-    expect(true).toBe(false);
   });
 });

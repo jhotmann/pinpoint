@@ -14,7 +14,6 @@ router.get('/', userMw.one, devMw.user, userMw.all, groupMw.user, async (req, re
   if (req.user.username === 'admin') {
     res.redirect('/admin');
   } else {
-    console.dir(req.pageData.userGroups[0].members);
     res.render('user.html', req.pageData);
   }
 });
@@ -27,7 +26,11 @@ router.get('/dismiss-help', userMw.one, async (req, res) => {
 // !!!! devices !!!!
 
 router.get('/add-device', async (req, res) => {
-  res.render('addDevice.html', req.pageData);
+  if (req.user.username === 'admin') {
+    res.redirect('/admin');
+  } else {
+    res.render('addDevice.html', req.pageData);
+  }
 });
 
 router.post('/add-device', userMw.one, async (req, res) => {
