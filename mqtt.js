@@ -1,25 +1,23 @@
-const aedes = require('aedes')();
 const async = require('async');
 const bcrypt = require('bcrypt');
-const httpServer = require('http').createServer();
-const ws = require('websocket-stream');
-const db = require('./database');
+const { User } = require('./models/User');
 
-ws.createServer({ server: httpServer }, aedes.handle);
-
+let aedes;
 const clientMap = {};
 
-httpServer.listen(process.env.MQTT_PORT || 8888, () => {
-  console.log(`Websocket server listening on port ${process.env.MQTT_PORT || 8888}`);
-});
+module.exports.set = (instanciated) => {
+  aedes = instanciated;
+}
 
-module.exports.publish = aedes.publish;
+module.exports.publish = (packet, callback) => {
+  if (aedes) aedes.publish(packet, callback);
+};
 
-aedes.authenticate = (client, username, password, callback) => {
+module.exports.authenticate = (client, username, password, callback) => {
   console.log(`Auth attempt by ${username}: ${password}`);
   const invalidUserPassword = new Error('Auth error');
   invalidUserPassword.returnCode = 4;
-  db.getUserByName(username)
+  User.getByUsername(username)
     .then((userData) => {
       if (!userData) {
         return callback(invalidUserPassword, null);
@@ -44,7 +42,7 @@ aedes.authenticate = (client, username, password, callback) => {
     });
 };
 
-aedes.authorizePublish = async (client, packet, callback) => {
+module.exports.authorizePublish = async (client, packet, callback) => {
   const username = clientMap[client.id];
   console.log(`${client.id} (${username}) published to ${packet.topic}: ${packet.payload}`);
   if (packet.topic.startsWith(`owntracks/${username}/`)) {
@@ -57,15 +55,14 @@ aedes.authorizePublish = async (client, packet, callback) => {
 
 async function publishToFriends(client, packet) {
   const username = clientMap[client.id];
-  const userData = await db.getUserByName(username);
-  if (!userData) return;
-  const { friends } = userData;
-  const groups = await db.getUserGroups(userData._id);
+  const user = await User.getByUsername(username);
+  if (!user) return;
+  const { friends } = user;
+  const groups = await user.getGroups();
   await async.eachSeries(groups, async (group) => {
     await async.eachSeries(group.members, async (member) => {
       if (member.accepted) {
-        const memberData = await db.getUser(member.userId);
-        if (memberData && !friends.includes(memberData.username)) friends.push(memberData.username);
+        if (!friends.includes(member.username)) friends.push(member.username);
       }
     });
   });
@@ -78,7 +75,7 @@ async function publishToFriends(client, packet) {
   });
 }
 
-aedes.authorizeSubscribe = (client, subscription, callback) => {
+module.exports.authorizeSubscribe = (client, subscription, callback) => {
   const username = clientMap[client.id];
   console.log(`${username} wants to subscribe to ${subscription.topic}`);
   if (subscription.topic.startsWith(`${username}/`) || subscription.topic.startsWith(`owntracks/${username}/`)) {

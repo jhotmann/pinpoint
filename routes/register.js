@@ -1,44 +1,46 @@
 const bcrypt = require('bcrypt');
 const express = require('express');
-const db = require('../src/database');
+const { User } = require('../models/User');
+const { Registration } = require('../models/Registration');
 
 const router = express.Router();
 const saltRounds = 15;
 
 /* GET user listing. */
 router.get('/:registrationId', async (req, res) => {
-  const registrationData = await db.getRegistration(req.params.registrationId);
-  if (registrationValid(registrationData)) {
+  const registration = await Registration.getByGuid(req.params.registrationId);
+  if (registrationValid(registration)) {
     res.render('register.html');
   } else {
-    res.render('invalidRegistration.html');
+    res.send('Registration Used, please request a new link.');
   }
 });
 
 router.post('/:registrationId', async (req, res) => {
-  const registrationData = await db.getRegistration(req.params.registrationId);
-  if (registrationValid(registrationData)) {
+  const registration = await Registration.getByGuid(req.params.registrationId);
+  if (registrationValid(registration)) {
     const { username, password } = req.body;
-    const userData = await db.getUserByName(username);
+    const userData = await User.getByUsername(username);
     if (userData) {
       res.send('Username Taken');
     } else {
       const hash = await bcrypt.hash(password, saltRounds);
-      const dbId = await db.createUser(username, hash);
-      if (dbId) {
-        await db.useRegistration(registrationData._id);
+      const user = new User({ username, passwordHash: hash, friends: [] });
+      await user.save();
+      if (user) {
+        await registration.use();
         res.send('Register Successful');
       } else {
         res.send('Error Creating User');
       }
     }
   } else {
-    res.render('invalidRegistration.html');
+    res.send('Registration Used, please request a new link.');
   }
 });
 
-function registrationValid(registrationData) {
-  return (registrationData && !registrationData.used && Date.now() < registrationData.expiration);
+function registrationValid(registration) {
+  return (registration && !registration.used && Date.now() < registration.expiration);
 }
 
 module.exports = router;

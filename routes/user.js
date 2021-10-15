@@ -1,22 +1,26 @@
 const async = require('async');
 const bcrypt = require('bcrypt');
 const express = require('express');
-const db = require('../src/database');
-const mqtt = require('../src/mqtt');
+const devMw = require('../middleware/device');
+const { Device } = require('../models/Device');
+const groupMw = require('../middleware/group');
+const mqtt = require('../mqtt');
+const userMw = require('../middleware/user');
 
 const router = express.Router();
 
 /* GET user listing. */
-router.get('/', db.mwUser, db.mwUserDevices, db.mwAllUsers, db.mwUserGroups, async (req, res) => {
+router.get('/', userMw.one, devMw.user, userMw.all, groupMw.user, async (req, res) => {
   if (req.user.username === 'admin') {
     res.redirect('/admin');
   } else {
+    console.dir(req.pageData.userGroups[0].members);
     res.render('user.html', req.pageData);
   }
 });
 
-router.get('/dismiss-help', db.mwUser, async (req, res) => {
-  await db.dismissHelp(req.pageData.userData._id);
+router.get('/dismiss-help', userMw.one, async (req, res) => {
+  await req.User.dismissHelp();
   res.redirect('/user');
 });
 
@@ -26,52 +30,48 @@ router.get('/add-device', async (req, res) => {
   res.render('addDevice.html', req.pageData);
 });
 
-router.post('/add-device', db.mwUser, async (req, res) => {
-  const result = await db.createDevice(req.body.deviceName, req.body.initials, req.pageData.userData);
-  if (result) {
+router.post('/add-device', userMw.one, async (req, res) => {
+  const device = await Device.create(req.body.deviceName, req.body.initials, req.User);
+  if (device) {
     res.send('Add Successful');
   } else {
     res.send('Error');
   }
 });
 
-router.get('/edit-device/:deviceId', db.mwUser, async (req, res) => {
-  req.pageData.deviceData = await db.getDevice(req.params.deviceId);
-  if (req.pageData.deviceData.userId === req.pageData.userData._id) {
+router.get('/edit-device/:deviceId', userMw.one, devMw.one, async (req, res) => {
+  if (req.Device && req.Device.userId === req.User._id) {
+    req.pageData.deviceData = req.Device.toPOJO();
     res.render('editDevice.html', req.pageData);
   } else {
     res.redirect('/user');
   }
 });
 
-router.post('/edit-device/:deviceId', db.mwUser, db.mwUserDevices, async (req, res) => {
-  if (req.pageData.userDevices.find((d) => d._id === req.params.deviceId)) {
-    const result = await db.updateDevice(req.params.deviceId, req.body.deviceName, req.body.initials, req.pageData.userData);
-    if (result) {
-      res.send('Edit Successful');
-    } else {
-      res.send('Error updating device');
-    }
+router.post('/edit-device/:deviceId', userMw.one, devMw.one, async (req, res) => {
+  if (req.Device && req.Device.userId === req.User._id) {
+    await req.Device.update(req.body.deviceName, req.body.initials, req.User);
+    res.send('Edit Successful');
   } else {
-    res.send('Device not found');
+    res.send('Error updating device');
   }
 });
 
-router.get('/delete-device/:deviceId', db.mwUser, db.mwUserDevices, async (req, res) => {
-  if (req.pageData.userDevices.find((d) => d._id === req.params.deviceId)) {
-    await db.deleteDevice(req.params.deviceId);
+router.get('/delete-device/:deviceId', userMw.one, devMw.one, async (req, res) => {
+  if (req.Device && req.Device.userId === req.User._id) {
+    await req.Device.remove();
   }
-  res.redirect(301, '/user');
+  res.redirect('/user');
 });
 
 // !!!! friends !!!!
 
-router.post('/update-friends', db.mwUser, db.mwUserDevices, async (req, res) => {
+router.post('/update-friends', userMw.one, devMw.user, async (req, res) => {
   let friends = req.body.friends || [];
   if (typeof friends === 'string') friends = [friends];
   const removedFriends = req.pageData.userData.friends.filter((friend) => !friends.includes(friend));
   clearLocations(req.pageData.userData.username, removedFriends, req.pageData.userDevices);
-  const result = await db.updateFriends(req.user.username, friends);
+  const result = await req.User.setFriends(friends);
   if (result) {
     res.send('Edit Successful');
   } else {
@@ -81,10 +81,10 @@ router.post('/update-friends', db.mwUser, db.mwUserDevices, async (req, res) => 
 
 // !!!! danger !!!!
 
-router.post('/reset-password', db.mwUser, async (req, res) => {
+router.post('/reset-password', userMw.one, async (req, res) => {
   const { password } = req.body;
   const hash = await bcrypt.hash(password, 15);
-  const result = await db.updatePassword(req.pageData.userData._id, hash);
+  const result = await req.User.setPasswordHash(hash);
   if (result) {
     res.send('Reset Successful');
   } else {
@@ -92,11 +92,11 @@ router.post('/reset-password', db.mwUser, async (req, res) => {
   }
 });
 
-router.get('/delete-user', db.mwUser, db.mwUserDevices, db.mwUserGroups, async (req, res) => {
-  await db.deleteUser(req.pageData.userData._id);
-  await db.deleteUserDevices(req.pageData.userData._id);
-  await async.eachSeries(req.pageData.userGroups, async (group) => { await db.leaveGroup(group._id, req.pageData.userData._id); });
-  clearLocations(req.pageData.userData.username, req.pageData.userData.friends, req.pageData.userDevices);
+router.get('/delete-user', userMw.one, devMw.user, groupMw.user, async (req, res) => {
+  await req.User.remove();
+  await req.User.deleteDevices();
+  await async.eachSeries(req.userGroups, async (group) => { await group.leave(req.User._id); });
+  clearLocations(req.User.username, req.User.friends, req.userDevices);
   res.redirect('/');
 });
 

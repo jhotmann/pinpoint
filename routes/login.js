@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const db = require('../src/database');
+const { User } = require('../models/User');
 
 const router = express.Router();
 
@@ -24,9 +24,9 @@ router.post('/', async (req, res) => {
       res.send('Invalid Password');
     }
   } else {
-    const userData = await db.getUserByName(username);
-    if (userData) {
-      const match = await bcrypt.compare(password, userData.passwordHash);
+    const user = await User.getByUsername(username);
+    if (user) {
+      const match = await bcrypt.compare(password, user.passwordHash);
       if (match) {
         const token = jwt.sign({ username }, process.env.JWT_SECRET, { expiresIn: '1y' });
         res.cookie('authorization', token, { sameSite: true });

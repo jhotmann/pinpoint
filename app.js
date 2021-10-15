@@ -3,12 +3,9 @@ const express = require('express');
 const logger = require('morgan');
 const nunjucks = require('nunjucks');
 const path = require('path');
-const auth = require('./src/jwtAuth');
-const isAdmin = require('./src/adminAuth');
+const auth = require('./middleware/auth');
 
 require('dotenv').config();
-
-require('./src/mqtt');
 
 const app = express();
 
@@ -34,12 +31,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/styles/css', express.static(path.join(__dirname, 'node_modules', 'bootstrap', 'dist', 'css')));
 app.use('/styles/js', express.static(path.join(__dirname, 'node_modules', 'bootstrap', 'dist', 'js')));
 
-app.use('/', require('./routes/index'));
+app.use('/', auth.isLoggedIn, require('./routes/index'));
 app.use('/login', require('./routes/login'));
-app.use('/logout', auth, require('./routes/logout'));
-app.use('/admin', auth, isAdmin, require('./routes/admin'));
-app.use('/user', auth, require('./routes/user'));
-app.use('/group', auth, require('./routes/group'));
+app.use('/logout', auth.isAuthenticated, require('./routes/logout'));
+app.use('/admin', auth.isAuthenticated, auth.isAdmin, require('./routes/admin'));
+app.use('/user', auth.isAuthenticated, require('./routes/user'));
+app.use('/group', auth.isAuthenticated, require('./routes/group'));
 app.use('/register', require('./routes/register'));
 
 module.exports = app;

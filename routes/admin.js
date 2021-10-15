@@ -1,34 +1,42 @@
 const express = require('express');
-const db = require('../src/database');
+const devMw = require('../middleware/device');
+const groupMw = require('../middleware/group');
+const { Registration } = require('../models/Registration');
+const regMw = require('../middleware/registration');
+const { User } = require('../models/User');
+const userMw = require('../middleware/user');
 
 const router = express.Router();
 
-router.get('/', db.mwUser, db.mwAllUsers, db.mwAllReg, db.mwAllDevices, db.mwAllGroups, async (req, res) => {
+router.get('/', userMw.one, userMw.all, regMw.all, devMw.all, groupMw.all, async (req, res) => {
   req.pageData.baseUrl = `${req.protocol}://${req.hostname}${req.hostname === 'localhost' ? ':8000' : ''}`;
   res.render('admin.html', req.pageData);
 });
 
 router.get('/generate-registration', async (req, res) => {
-  const guid = await db.createRegistration();
+  const guid = await Registration.create();
   res.send(guid);
 });
 
 router.get('/revoke-registration/:registrationId', async (req, res) => {
-  const registrationData = await db.getRegistration(req.params.registrationId);
-  if (registrationData) {
-    await db.useRegistration(registrationData._id);
+  const registration = await Registration.getByGuid(req.params.registrationId);
+  if (registration) {
+    await registration.use();
   }
-  res.redirect(301, '/admin');
+  res.redirect('/admin');
 });
 
 router.post('/elevate-user/:userId/:admin', async (req, res) => {
-  await db.setUserAdminStatus(req.params.userId, req.params.admin === 'true');
+  const user = await User.get(req.params.userId);
+  user.isAdmin = req.params.admin === 'true';
+  await user.save();
   res.send('Done');
 });
 
 router.get('/delete-user/:userId', async (req, res) => {
-  await db.deleteUser(req.params.userId);
-  await db.deleteUserDevices(req.params.userId);
+  const user = await User.get(req.params.userId);
+  await user.remove();
+  await user.deleteDevices();
   res.redirect('/admin');
 });
 

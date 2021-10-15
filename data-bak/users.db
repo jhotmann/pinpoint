@@ -1,0 +1,4 @@
+{"username":"tester","passwordHash":"$2b$15$07b.7uNB.RlzFsUqMHHQxuYXkx53of/L9hNpnKBf3lcEKvZNshj9O","friends":[],"groups":[],"_id":"djj7HiLbKcVxWTCz","createdAt":{"$$date":1634233462575},"updatedAt":{"$$date":1634237102958},"helpDismissed":true}
+{"username":"jhot","passwordHash":"$2b$15$Rhdw.rbGwmFiuJUHEcZ1suVYpkznxHpmlk2LFXYNdBY.X/pGW9YNu","groups":[],"friends":[],"_id":"gNak9JsglN5qNIWA","createdAt":{"$$date":1633972112949},"updatedAt":{"$$date":1634247954355},"helpDismissed":true,"isAdmin":true}
+{"username":"pinpoint","passwordHash":"$2b$15$49GOMilXZjhaDWlS05K.reVn0SQXEMDNkOcG4Q6MQeIC.GKnooCme","friends":[],"groups":[],"_id":"ikr7xMcJKom9EXgB","createdAt":{"$$date":1634233509082},"updatedAt":{"$$date":1634237036273},"helpDismissed":true}
+{"username":"alice","passwordHash":"$2b$15$aTMH8aNMGad3m8viXNHsk.NVPkL1xmsse1UYZAKRkz25A8FF58nBS","friends":[],"groups":[],"_id":"r7Kgdw5lIW5t6EQR","createdAt":{"$$date":1634233530193},"updatedAt":{"$$date":1634233697296}}

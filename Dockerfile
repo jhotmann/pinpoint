@@ -1,10 +1,12 @@
 FROM node:16
 
+ENV BEHIND_PROXY=true
+ENV NODE_ENV=production
+
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 RUN npm i -g forever
-ENV BEHIND_PROXY=true
 
 COPY . .
 
