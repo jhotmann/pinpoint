@@ -5,7 +5,7 @@
   "scripts": {
     "start": "forever ./bin/www",
     "dev": "nodemon ./bin/www",
-    "test": "cross-env NODE_ENV=test ADMIN_PASSWORD=admintest JWT_SECRET=jwttest jest --detectOpenHandles --testTimeout=10000 --verbose"
+    "test": "cross-env NODE_ENV=test ADMIN_PASSWORD=admintest JWT_SECRET=jwttest jest --detectOpenHandles --testTimeout=30000 --verbose"
   },
   "dependencies": {
     "aedes": "^0.46.1",
