@@ -1,3 +1,4 @@
+const bcrypt = require('bcrypt');
 const path = require('path');
 const { Base } = require('./Base');
 const { Device } = require('./Device');
@@ -22,6 +23,15 @@ class User extends Base {
     };
   }
 
+  static async create(username, password) {
+    const existing = await User.findOne({ username });
+    if (existing) return null;
+    const passwordHash = await bcrypt.hash(password, 15);
+    const user = new User({ username, passwordHash, friends: [], isAdmin: false });
+    await user.save();
+    return user;
+  }
+
   async setFriends(friendsArray) {
     this.friends = friendsArray || [];
     if (typeof friendsArray === 'string') this.friends = [friendsArray];
@@ -35,8 +45,8 @@ class User extends Base {
     return user;
   }
 
-  async setIsAdmin(isAdmin) {
-    this.isAdmin = isAdmin;
+  async setIsAdmin(admin) {
+    this.isAdmin = admin;
     const user = await this.save();
     return user;
   }

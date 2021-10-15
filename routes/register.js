@@ -20,19 +20,12 @@ router.post('/:registrationId', async (req, res) => {
   const registration = await Registration.getByGuid(req.params.registrationId);
   if (registrationValid(registration)) {
     const { username, password } = req.body;
-    const userData = await User.getByUsername(username);
-    if (userData) {
-      res.send('Username Taken');
+    const user = await User.create(username, password);
+    if (user) {
+      await registration.use();
+      res.send('Register Successful');
     } else {
-      const hash = await bcrypt.hash(password, saltRounds);
-      const user = new User({ username, passwordHash: hash, friends: [] });
-      await user.save();
-      if (user) {
-        await registration.use();
-        res.send('Register Successful');
-      } else {
-        res.send('Error Creating User');
-      }
+      res.send('Error Creating User');
     }
   } else {
     res.send('Registration Used, please request a new link.');

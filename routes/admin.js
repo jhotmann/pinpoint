@@ -28,8 +28,7 @@ router.get('/revoke-registration/:registrationId', async (req, res) => {
 
 router.post('/elevate-user/:userId/:admin', async (req, res) => {
   const user = await User.get(req.params.userId);
-  user.isAdmin = req.params.admin === 'true';
-  await user.save();
+  await user.setIsAdmin(req.params.admin === 'true');
   res.send('Done');
 });
 
