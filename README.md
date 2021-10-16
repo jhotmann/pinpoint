@@ -13,7 +13,7 @@ A server for [OwnTracks](https://owntracks.org/) with several enhancements over 
 
 ## Installation
 
-The recommended and supported installation method is using [Docker](https://www.docker.com/) via [Docker Compose](https://docs.docker.com/compose/). It is highly recommended that you host Pinpoint behind a reverse proxy that handles SSL/TLS, my personal favorite is [Caddy](https://caddyserver.com/v2).
+The recommended and supported installation method is using [Docker](https://www.docker.com/) via [Docker Compose](https://docs.docker.com/compose/). It is highly recommended that you host Pinpoint behind a reverse proxy that handles SSL/TLS, my personal favorite is [Caddy](https://caddyserver.com/v2). The MQTT server only supports websocket connections for now, so your proxy will need to be able to handle that.
 
 Example:
 
@@ -77,6 +77,20 @@ networks:
 volumes:
   caddy_data: {}
 
+```
+
+Caddy v2 config example if you aren't using Caddy-Docker-Proxy:
+
+```
+{
+ 	email certs@example.com
+}
+pinpoint.example.com {
+  reverse_proxy 192.168.0.2:8000
+}
+pinpointmqtt.example.com {
+ 	reverse_proxy 192.168.0.2:8888
+}
 ```
 
 ## How it works
