@@ -1,6 +1,5 @@
 const cryptoRandomString = require('crypto-random-string');
 const ms = require('ms');
-// const { Model } = require('nedb-models');
 const path = require('path');
 const { Base } = require('./Base');
 

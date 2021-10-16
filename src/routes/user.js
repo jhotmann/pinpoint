@@ -43,7 +43,7 @@ router.post('/add-device', userMw.one, async (req, res) => {
 });
 
 router.get('/edit-device/:deviceId', userMw.one, devMw.one, async (req, res) => {
-  if (req.Device && req.Device.userId === req.User._id) {
+  if (req.User && req.Device && req.Device.userId === req.User._id) {
     req.pageData.deviceData = req.Device.toPOJO();
     res.render('editDevice.html', req.pageData);
   } else {

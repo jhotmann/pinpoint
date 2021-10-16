@@ -5,7 +5,7 @@ const { User } = require('../models/User');
 let jester;
 
 beforeAll(async () => {
-  jester = await User.create('jester', 'jester');
+  jester = await User.create('jester-login', 'jester');
 });
 
 afterAll(async () => {
@@ -39,7 +39,7 @@ describe('Login', () => {
   test('The test user should be able to login', async () => {
     const response = await request(app).post('/login')
       .type('form')
-      .send({ username: 'jester' })
+      .send({ username: 'jester-login' })
       .send({ password: 'jester' });
     expect(response.text).toBe('Login Successful');
   });
@@ -47,7 +47,7 @@ describe('Login', () => {
   test('An incorrect test user password shouldn\'t work', async () => {
     const response = await request(app).post('/login')
       .type('form')
-      .send({ username: 'jester' })
+      .send({ username: 'jester-login' })
       .send({ password: '1234567890' });
     expect(response.text).toBe('Invalid Password');
   });

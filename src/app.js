@@ -9,7 +9,7 @@ require('dotenv').config();
 
 const app = express();
 
-const nunjucksEnv = nunjucks.configure('views', { express: app, autoescape: true });
+const nunjucksEnv = nunjucks.configure(path.join(__dirname, 'views'), { express: app, autoescape: true });
 nunjucksEnv.addFilter('arrayFilter', (arr, prop, value) => arr.filter((a) => a[prop] === value));
 nunjucksEnv.addFilter('arrayFilterPropIncludes', (arr, prop, subprop, value) => {
   if (subprop && !value) {
@@ -28,8 +28,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/styles/css', express.static(path.join(__dirname, 'node_modules', 'bootstrap', 'dist', 'css')));
-app.use('/styles/js', express.static(path.join(__dirname, 'node_modules', 'bootstrap', 'dist', 'js')));
+app.use('/styles/css', express.static(path.join(__dirname, '..', 'node_modules', 'bootstrap', 'dist', 'css')));
+app.use('/styles/js', express.static(path.join(__dirname, '..', 'node_modules', 'bootstrap', 'dist', 'js')));
 
 app.use('/', auth.isLoggedIn, require('./routes/index'));
 app.use('/login', require('./routes/login'));

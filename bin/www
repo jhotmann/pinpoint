@@ -7,8 +7,8 @@
 const aedes = require('aedes')();
 const http = require('http');
 const ws = require('websocket-stream');
-const app = require('../app');
-const mqtt = require('../mqtt');
+const app = require('../src/app');
+const mqtt = require('../src/mqtt');
 
 /**
  * Get port from environment and store in Express.

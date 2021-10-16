@@ -8,13 +8,15 @@ const adminAgent = request.agent(app);
 const jesterAgent = request.agent(app);
 const jesterAdminAgent = request.agent(app);
 
+const regularUser = 'jester-admin';
+const elevatedUser = 'jesterAdmin-admin';
 let jester;
 let jesterAdmin;
 
 beforeAll(async () => {
   // Create test users
-  jester = await User.create('jester', 'jester');
-  jesterAdmin = await User.create('jesterAdmin', 'jester');
+  jester = await User.create(regularUser, 'jester');
+  jesterAdmin = await User.create(elevatedUser, 'jester');
   await jesterAdmin.setIsAdmin(true);
 
   // Login
@@ -25,12 +27,12 @@ beforeAll(async () => {
 
   await jesterAgent.post('/login')
     .type('form')
-    .send({ username: 'jester' })
+    .send({ username: regularUser })
     .send({ password: 'jester' });
 
   await jesterAdminAgent.post('/login')
     .type('form')
-    .send({ username: 'jesterAdmin' })
+    .send({ username: elevatedUser })
     .send({ password: 'jester' });
 });
 

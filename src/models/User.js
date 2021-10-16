@@ -32,6 +32,11 @@ class User extends Base {
     return user;
   }
 
+  async refresh() {
+    const user = await User.get(this._id);
+    return user;
+  }
+
   async setFriends(friendsArray) {
     this.friends = friendsArray || [];
     if (typeof friendsArray === 'string') this.friends = [friendsArray];
