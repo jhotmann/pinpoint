@@ -4,7 +4,8 @@
         "commonjs": true,
         "es2021": true,
         "node": true,
-        "jquery": true
+        "jquery": true,
+        "jest/globals": true,
     },
     "extends": [
         "airbnb-base"
@@ -19,5 +20,6 @@
         "no-param-reassign": "warn",
         "max-len": "off",
         "no-console": "off"
-    }
+    },
+    "plugins": ["jest"]
 }

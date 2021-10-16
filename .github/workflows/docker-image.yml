@@ -4,16 +4,29 @@ on:
   push:
     branches:
       - 'main'
+      - 'automated-tests'
     tags:
       - 'v*'
 
 jobs:
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test using Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16'
+      - run: npm ci
+      - run: npm test
+
   build:
+    needs: test
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-    # Generate container tags
     - name: Docker meta
       id: meta
       uses: docker/metadata-action@v3

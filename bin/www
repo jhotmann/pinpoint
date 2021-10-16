@@ -4,11 +4,11 @@
  * Module dependencies.
  */
 
+const aedes = require('aedes')();
 const http = require('http');
-const app = require('../app');
-const db = require('../src/database');
-
-(async () => { await db.dataMigration(); })();
+const ws = require('websocket-stream');
+const app = require('../src/app');
+const mqtt = require('../src/mqtt');
 
 /**
  * Get port from environment and store in Express.
@@ -22,6 +22,8 @@ app.set('port', port);
  */
 
 const server = http.createServer(app);
+const mqttServer = http.createServer();
+ws.createServer({ server: mqttServer }, aedes.handle);
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -30,6 +32,10 @@ const server = http.createServer(app);
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
+
+mqttServer.listen(process.env.MQTT_PORT || 8888, () => {
+  console.log(`MQTT websocket server listening on port ${process.env.MQTT_PORT || 8888}`);
+});
 
 /**
  * Normalize a port into a number, string, or false.
@@ -86,3 +92,10 @@ function onListening() {
   const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr.port}`;
   console.log(`Express server listening on ${bind}`);
 }
+
+// MQTT Event Handlers
+
+mqtt.set(aedes);
+aedes.authenticate = mqtt.authenticate;
+aedes.authorizeSubscribe = mqtt.authorizeSubscribe;
+aedes.authorizePublish = mqtt.authorizePublish;
