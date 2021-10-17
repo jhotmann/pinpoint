@@ -54,7 +54,7 @@ function cleanString(str) {
 }
 
 function getDeviceConfig(userData, deviceName, initials) {
-  const configData = {
+  const mqttConfig = {
     _type: 'configuration',
     autostartOnBoot: true,
     clientId: `${cleanString(userData.username)}-${cleanString(deviceName)}`,
@@ -79,7 +79,24 @@ function getDeviceConfig(userData, deviceName, initials) {
     username: userData.username,
     ws: true,
   };
-  const configBuffer = Buffer.from(JSON.stringify(configData), 'utf8');
+
+  const httpConfig = {
+    _type: 'configuration',
+    autostartOnBoot: true,
+    deviceId: cleanString(deviceName),
+    locatorInterval: 300,
+    mode: 3,
+    monitoring: 1,
+    password: userData.passwordHash,
+    ping: 30,
+    pubExtendedData: true,
+    tid: initials,
+    tls: true,
+    url: `${process.env.HTTP_HOST}/pub`,
+    username: userData.username,
+  }
+  
+  const configBuffer = Buffer.from(JSON.stringify(process.env.MQTT_HOST ? mqttConfig : httpConfig), 'utf8');
   return `owntracks:///config?inline=${configBuffer.toString('base64')}`;
 }
 

@@ -27,7 +27,11 @@ module.exports.user = async (req, res, next) => {
     next();
   } else {
     req.userGroups = await req.User.getGroups();
-    req.pageData.userGroups = req.userGroups.map((group) => group.toPOJO());
+    req.pageData.userGroups = req.userGroups.map((group) => group.toPOJO())
+      .map((group) => {
+        group.accepted = group.members.find((member) => member.userId === req.User._id).accepted;
+        return group;
+      });
     next();
   }
 };

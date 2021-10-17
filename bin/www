@@ -1,65 +1,27 @@
 #!/usr/bin/env node
 
-/**
- * Module dependencies.
- */
-
 const aedes = require('aedes')();
 const http = require('http');
 const ws = require('websocket-stream');
 const app = require('../src/app');
 const mqtt = require('../src/mqtt');
 
-/**
- * Get port from environment and store in Express.
- */
+// Get port from environment and store in Express.
 
 const port = normalizePort(process.env.PORT || '8000');
 app.set('port', port);
 
-/**
- * Create HTTP server.
- */
+// Create HTTP Server
 
 const server = http.createServer(app);
-const mqttServer = http.createServer();
-ws.createServer({ server: mqttServer }, aedes.handle);
 
-/**
- * Listen on provided port, on all network interfaces.
- */
+// Listen on provided port, on all network interfaces.
 
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 
-mqttServer.listen(process.env.MQTT_PORT || 8888, () => {
-  console.log(`MQTT websocket server listening on port ${process.env.MQTT_PORT || 8888}`);
-});
-
-/**
- * Normalize a port into a number, string, or false.
- */
-
-function normalizePort(val) {
-  const parsedPort = parseInt(val, 10);
-
-  if (Number.isNaN(parsedPort)) {
-    // named pipe
-    return val;
-  }
-
-  if (parsedPort >= 0) {
-    // port number
-    return parsedPort;
-  }
-
-  return false;
-}
-
-/**
- * Event listener for HTTP server "error" event.
- */
+// Event listener for HTTP server "error" event.
 
 function onError(error) {
   if (error.syscall !== 'listen') {
@@ -83,9 +45,7 @@ function onError(error) {
   }
 }
 
-/**
- * Event listener for HTTP server "listening" event.
- */
+// Event listener for HTTP server "listening" event.
 
 function onListening() {
   const addr = server.address();
@@ -93,9 +53,40 @@ function onListening() {
   console.log(`Express server listening on ${bind}`);
 }
 
-// MQTT Event Handlers
+// Create MQTT Server
 
-mqtt.set(aedes);
-aedes.authenticate = mqtt.authenticate;
-aedes.authorizeSubscribe = mqtt.authorizeSubscribe;
-aedes.authorizePublish = mqtt.authorizePublish;
+if (process.env.MQTT_HOST) {
+  const mqttServer = http.createServer();
+  ws.createServer({ server: mqttServer }, aedes.handle);
+
+  mqttServer.listen(process.env.MQTT_PORT || 8888, () => {
+    console.log(`MQTT websocket server listening on port ${process.env.MQTT_PORT || 8888}`);
+  });
+
+  // MQTT Event Handlers
+  
+  mqtt.set(aedes);
+  aedes.authenticate = mqtt.authenticate;
+  aedes.authorizeSubscribe = mqtt.authorizeSubscribe;
+  aedes.authorizePublish = mqtt.authorizePublish;
+}
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  const parsedPort = parseInt(val, 10);
+
+  if (Number.isNaN(parsedPort)) {
+    // named pipe
+    return val;
+  }
+
+  if (parsedPort >= 0) {
+    // port number
+    return parsedPort;
+  }
+
+  return false;
+}
