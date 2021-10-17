@@ -34,6 +34,8 @@ router.get('/add-device', async (req, res) => {
 });
 
 router.post('/add-device', userMw.one, async (req, res) => {
+  const existingInitials = await Device.findOne({ initials: req.body.initials });
+  if (existingInitials) return res.send('Initials Invalid');
   const device = await Device.create(req.body.deviceName, req.body.initials, req.User);
   if (device) {
     res.send('Add Successful');
@@ -99,8 +101,8 @@ router.get('/delete-user', userMw.one, devMw.user, groupMw.user, async (req, res
   await req.User.remove();
   await req.User.deleteDevices();
   await async.eachSeries(req.userGroups, async (group) => { await group.leave(req.User._id); });
-  clearLocations(req.User.username, req.User.friends, req.userDevices);
-  res.redirect('/');
+  if (process.env.MQTT_HOST) clearLocations(req.User.username, req.User.friends, req.userDevices);
+  res.redirect('/logout');
 });
 
 function clearLocations(username, friends, devices) {

@@ -15,7 +15,18 @@ A server for [OwnTracks](https://owntracks.org/) with several enhancements over 
 
 The recommended and supported installation method is using [Docker](https://www.docker.com/) via [Docker Compose](https://docs.docker.com/compose/). It is highly recommended that you host Pinpoint behind a reverse proxy that handles SSL/TLS, my personal favorite is [Caddy](https://caddyserver.com/v2). The MQTT server only supports websocket connections for now, so your proxy will need to be able to handle that.
 
-Example:
+## Configuration
+
+| Environmental Variable | Description | Example |
+| ----- | ----- | ----- |
+| HTTP_HOST | The protocol, hostname, and port (if necessary) for clients to connect to your server | `http://192.168.0.2:8000` or `https://pinpoint.example.com` |
+| MQTT_HOST | The hostname for clients to connect to the MQTT server. If set, client configuration links will use MQTT instead of HTTP settings. | `pinpointmqtt.example.com` |
+| ADMIN_PASSWORD | The password for the admin account | `mysupersecretpassword` |
+| JWT_SECRET | A random string | `eWF6vUCKXAgB2DK2bzWrJ4RJsALxE6eacKKQarKx` |
+
+## Examples
+
+#### HTTP Mode
 
 ```yaml
 version: "3.8"
@@ -54,6 +65,69 @@ services:
     volumes:
       - ./apps/pinpoint:/app/data
     environment:
+      - HTTP_HOST=pinpoint.${DOMAIN_NAME}
+      - ADMIN_PASSWORD=${PINPOINT_ADMIN_PASSWORD}
+      - JWT_SECRET=${PINPOINT_JWT_SECRET}
+    labels:
+      caddy: pinpoint.${DOMAIN_NAME}
+      caddy.reverse_proxy: "{{upstreams 8000}}"
+
+networks:
+  # caddy network allows the caddy to see any containers you want to expose to the internet
+  caddy:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.1.0/24
+          gateway: 172.18.1.1
+      driver: default
+
+# list data volumes here
+volumes:
+  caddy_data: {}
+
+```
+
+#### MQTT Mode
+
+```yaml
+version: "3.8"
+
+services:
+  caddy:
+    container_name: caddy
+    image: lucaslorentz/caddy-docker-proxy:2.3
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - caddy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - caddy_data:/data
+    depends_on:
+      - ddns-updater
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      replicas: 1
+    labels:
+      caddy.email: ${CERTIFICATE_EMAIL_ADDRESS}
+
+  pinpoint:
+    image: jhot/pinpoint:latest
+    restart: always
+    networks:
+      - caddy
+    ports:
+      - 8000:8000
+      - 8888:8888
+    volumes:
+      - ./apps/pinpoint:/app/data
+    environment:
+      - HTTP_HOST=pinpoint.${DOMAIN_NAME}
       - MQTT_HOST=pinpointmqtt.${DOMAIN_NAME}
       - ADMIN_PASSWORD=${PINPOINT_ADMIN_PASSWORD}
       - JWT_SECRET=${PINPOINT_JWT_SECRET}

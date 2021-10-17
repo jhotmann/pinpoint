@@ -1,6 +1,6 @@
 const { User } = require('../models/User');
 
-// Depends upon auth middleware
+// Depends upon auth jwt or basic
 module.exports.one = async (req, res, next) => {
   if (!req.pageData) req.pageData = {};
   req.User = await User.getByUsername(req.user.username);

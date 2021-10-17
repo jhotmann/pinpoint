@@ -3,6 +3,7 @@ const path = require('path');
 const { Base } = require('./Base');
 const { Device } = require('./Device');
 const { Group } = require('./Group');
+const { Location } = require('./Location');
 
 /*
 {
@@ -72,9 +73,29 @@ class User extends Base {
     return number;
   }
 
+  async deleteLocations() {
+    const number = await Location.remove({ userId: this._id }, { multi: true });
+    return number;
+  }
+
   async getGroups() {
     const groups = await Group.getByUserId(this._id);
     return groups;
+  }
+
+  async getUsersSharingWith() {
+    const groups = await this.getGroups();
+    let sharers = [];
+
+    groups.forEach((group) => {
+      const members = group.members.map((member) => member.userId);
+      sharers = sharers.concat(members);
+    });
+
+    const allUsers = await User.getAll();
+    sharers = sharers.concat(allUsers.filter((user) => user.friends.includes(this.username)).map((user) => user._id));
+
+    return [...new Set(sharers)];
   }
 
   static async getByUsername(uname) {

@@ -1,3 +1,4 @@
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { User } = require('../models/User');
 
@@ -16,7 +17,7 @@ module.exports.isLoggedIn = (req, res, next) => {
   next();
 };
 
-module.exports.isAuthenticated = (req, res, next) => {
+module.exports.jwt = (req, res, next) => {
   const authCookie = req.cookies.authorization;
 
   if (authCookie) {
@@ -45,3 +46,29 @@ module.exports.isAdmin = async (req, res, next) => {
     }
   }
 };
+
+module.exports.basic = async (req, res, next) => {
+  const b64auth = (req.headers.authorization || '').split(' ')[1] || ''
+  const [login, password] = Buffer.from(b64auth, 'base64').toString().split(':')
+
+  if (login && password) {
+    const user = await User.getByUsername(login);
+    if (user) {
+      if (!req.user) req.user = {};
+      if (`${password}` === `${user.passwordHash}`) {
+        req.user.username = login;
+        return next();
+      } else {
+        const match = await bcrypt.compare(password, user.passwordHash);
+        if (match) {
+          req.user.username = login;
+          return next();
+        }
+      }
+    }
+  }
+
+  // Access denied...
+  res.set('WWW-Authenticate', 'Basic realm="401"');
+  res.status(401).send('Authentication required.');
+}
