@@ -21,7 +21,7 @@ class Device extends Base {
     };
   }
 
-  static async create(name, initials, user) {
+  static async create(name, initials, card, user) {
     const existing = await Device.findOne({ userId: user._id, name });
     if (existing) return null;
     const configLink = getDeviceConfig(user, name, initials);
@@ -29,16 +29,18 @@ class Device extends Base {
       userId: user._id,
       name,
       initials,
+      card,
       configLink,
     });
     await device.save();
     return device;
   }
 
-  async update(name, initials, user) {
+  async update(name, initials, card, user) {
     this.configLink = getDeviceConfig(user, name, initials);
     this.name = name;
     this.initials = initials;
+    this.card = card;
     const device = await this.save();
     return device;
   }

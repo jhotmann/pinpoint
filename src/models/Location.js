@@ -18,10 +18,11 @@ class Location extends Base {
     };
   }
 
-  static async create(data, user) {
+  static async create(data, user, deviceId) {
     const location = new Location({
       userId: user._id,
       username: user.username,
+      deviceId,
       data
     });
     await location.save();
@@ -34,9 +35,13 @@ class Location extends Base {
   }
 
   static async getLastByUserId(userId) {
-    const location = await Location.find({ userId }).sort({ createdAt: -1 }).limit(1);
-    if (location.length === 1) return location[0];
-    return null;
+    const locations = [];
+    (await Location.find({ userId }).sort({ createdAt: -1 })).forEach((loc) => {
+      if (!locations.find((location) => location.deviceId === loc.deviceId)) {
+        locations.push(loc);
+      }
+    });
+    return locations;
   }
 }
 

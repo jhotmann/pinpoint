@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
 const aedes = require('aedes')();
+const { CronJob } = require('cron');
 const http = require('http');
 const ws = require('websocket-stream');
 const app = require('../src/app');
+const { CardSeen } = require('../src/models/CardSeen');
 const mqtt = require('../src/mqtt');
 
 // Get port from environment and store in Express.
@@ -70,6 +72,15 @@ if (process.env.MQTT_HOST) {
   aedes.authorizeSubscribe = mqtt.authorizeSubscribe;
   aedes.authorizePublish = mqtt.authorizePublish;
 }
+
+// Scheduled Jobs
+const cardSeenReset = new CronJob(process.env.CLEAR_CARD_CACHE || '0 0 0 * * *', async () => {
+  console.log('Resetting device card cache');
+  const count = await CardSeen.update({ seen: true }, { $set: { seen: false } });
+  console.log(`${count} records updated`);
+}, null, true);
+
+console.log(`Card cache will be cleared at ${cardSeenReset.nextDate()}`);
 
 /**
  * Normalize a port into a number, string, or false.

@@ -5,17 +5,25 @@ $(() => {
   theForm.on('submit', (event) => {
     event.preventDefault();
     $('#initials').removeClass('is-invalid');
-    if ($('#initials').val().match(/^[A-Z]{2}$/)) {
-      $.post(window.location.href, theForm.serialize(), (response) => {
+    $('#device-save').text('Updating');
+    $.ajax({
+      type: 'POST',
+      url: window.location.href,
+      processData: false,
+      contentType: false,
+      data: new FormData(document.getElementById('device-form')),
+      success: (response) => {
+        $('#device-save').text('Save');
         switch (response) {
           case 'Edit Successful':
             window.location.href = `${window.location.origin}/user`;
             break;
+          case 'Initials Invalid':
+            $('#initials').addClass('is-invalid');
+            break;
           default:
         }
-      });
-    } else {
-      $('#initials').addClass('is-invalid');
-    }
+      },
+    });
   });
 });

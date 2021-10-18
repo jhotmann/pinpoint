@@ -4,7 +4,7 @@
 
     
 <main style="width: 100%; max-width: 600px; padding: 15px; margin: auto;">
-  <form id="device-form">
+  <form id="device-form" enctype="multipart/form-data">
     <h1 class="h3 mb-3 fw-normal">Device Information</h1>
 
     <div class="form-floating">
@@ -20,6 +20,11 @@
       <div class="invalid-feedback">
         Initials taken
       </div>
+    </div>
+    <p class="mt-3">Optional avatar uplaod. The initials will be shown if no photo is uploaded.</p>
+    <div class="mt-1 input-group">
+      <label class="input-group-text" for="avatar">Avatar</label>
+      <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*">
     </div>
 
     <button class="btn btn-primary mt-3" type="submit">Add Device</button>
