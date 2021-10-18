@@ -54,7 +54,7 @@ describe('Invite to group', () => {
       .type('form')
       .send({ members: [friend._id] });
     expect(response.text).toBe('Done');
-    const group = await Group.findOne({ name: 'Court Jesters', adminId: jester._id });
-    expect(group.members.lenth).toBe(2);
+    group = await Group.findOne({ name: 'Court Jesters', adminId: jester._id });
+    expect(group.members.length).toBe(2);
   });
 });
