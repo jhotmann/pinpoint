@@ -13,7 +13,7 @@ $(() => {
       success: (response) => {
         $('#device-save').text('Save');
         switch (response) {
-          case 'Edit Successful':
+          case 'Add Successful':
             window.location.href = `${window.location.origin}/user`;
             break;
           case 'Initials Invalid':
