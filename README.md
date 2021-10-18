@@ -17,12 +17,13 @@ The recommended and supported installation method is using [Docker](https://www.
 
 ## Configuration
 
-| Environmental Variable | Description | Example |
-| ----- | ----- | ----- |
-| HTTP_HOST | The protocol, hostname, and port (if necessary) for clients to connect to your server | `http://192.168.0.2:8000` or `https://pinpoint.example.com` |
-| MQTT_HOST | The hostname for clients to connect to the MQTT server. If set, client configuration links will use MQTT instead of HTTP settings. | `pinpointmqtt.example.com` |
-| ADMIN_PASSWORD | The password for the admin account | `mysupersecretpassword` |
-| JWT_SECRET | A random string | `eWF6vUCKXAgB2DK2bzWrJ4RJsALxE6eacKKQarKx` |
+| Environmental Variable | Description | Default | Example |
+| ----- | ----- | ----- | ----- |
+| HTTP_HOST | The protocol, hostname, and port (if necessary) for clients to connect to your server | | `http://192.168.0.2:8000` or `https://pinpoint.example.com` |
+| MQTT_HOST | The hostname for clients to connect to the MQTT server. If set, client configuration links will use MQTT instead of HTTP settings. | | `pinpointmqtt.example.com` |
+| ADMIN_PASSWORD | The password for the admin account | `pinpointadmin` | `mysupersecretpassword` |
+| JWT_SECRET | A random string | `pleasechangeme` | `eWF6vUCKXAgB2DK2bzWrJ4RJsALxE6eacKKQarKx` |
+| CLEAR_CARD_CACHE | A cron expression (with seconds) to clear card cache and force devices to re-download card data | `0 0 0 * * *` aka midnight daily | `0 0 0 * * 0` aka midnight weekly on Sunday |
 
 ## Examples
 
