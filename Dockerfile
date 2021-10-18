@@ -5,7 +5,7 @@ ENV NODE_ENV=production
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --build-from-source
 RUN npm i -g forever
 
 COPY . .
