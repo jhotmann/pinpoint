@@ -90,7 +90,7 @@ describe('Get the Edit Device page', () => {
   let deviceId;
 
   beforeAll(async () => {
-    const device = await Device.create('tempDevice', 'TD', jester);
+    const device = await Device.create('tempDevice', 'TD', {_type: 'card', name: 'jester', tid: 'JP'}, jester);
     deviceId = device._id;
   });
 
