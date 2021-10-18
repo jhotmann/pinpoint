@@ -4,9 +4,8 @@ ENV BEHIND_PROXY=true
 ENV NODE_ENV=production
 
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci --build-from-source
-RUN npm i -g forever
+COPY package*.json setup.sh ./
+RUN chmod +x setup.sh && ./setup.sh
 
 COPY . .
 
