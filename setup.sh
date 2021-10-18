@@ -14,6 +14,3 @@ if [ "$arch" != "amd64" ]; then
   ldconfig
   npm ci
 fi
-
-npm ci
-npm i -g forever
