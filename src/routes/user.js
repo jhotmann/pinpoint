@@ -110,8 +110,12 @@ router.post('/update-friends', userMw.one, devMw.user, async (req, res) => {
 router.post('/reset-password', userMw.one, async (req, res) => {
   const { password } = req.body;
   const hash = await bcrypt.hash(password, 15);
-  const result = await req.User.setPasswordHash(hash);
-  if (result) {
+  const updatedUser = await req.User.setPasswordHash(hash);
+  if (updatedUser) {
+    const devices = await req.User.getDevices();
+    await async.eachSeries(devices, async (device) => {
+      await device.update(device.name, device.initials, device.card, updatedUser);
+    });
     res.send('Reset Successful');
   } else {
     res.send('Error');
