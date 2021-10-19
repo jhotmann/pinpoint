@@ -52,7 +52,7 @@ describe('Invite to group', () => {
   test('A user can inite user to their groups', async () => {
     const response = await jesterAgent.post(`/group/${group._id}/invite`)
       .type('form')
-      .send({ members: [friend._id] });
+      .send({ members: friend._id });
     expect(response.text).toBe('Done');
     group = await Group.findOne({ name: 'Court Jesters', adminId: jester._id });
     expect(group.members.length).toBe(2);
