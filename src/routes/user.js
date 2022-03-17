@@ -49,6 +49,7 @@ router.post('/add-device', upload.single('avatar'), userMw.one, async (req, res)
   if (existingInitials) return res.send('Initials Invalid');
   const device = await Device.create(req.body.deviceName, req.body.initials, card, req.User);
   if (device) {
+    if (req.poinpointSettings.mqttEnabled) publishDeviceCards(req.User.username, req.User.friends, [ device ]);
     res.send('Add Successful');
   } else {
     res.send('Error');
@@ -74,8 +75,9 @@ router.post('/edit-device/:deviceId', upload.single('avatar'), userMw.one, devMw
     fs.unlink(req.file.path, () => { console.log('Temp file deleted') });
   }
   if (req.Device && req.Device.userId === req.User._id) {
-    await req.Device.update(req.body.deviceName, req.body.initials, card, req.User);
-    await CardSeen.update({ deviceId: req.params.deviceId }, { $set: { seen: false } }); // Force friends to re-download card data
+    req.Device = await req.Device.update(req.body.deviceName, req.body.initials, card, req.User);
+    await CardSeen.update({ deviceId: req.params.deviceId }, { $set: { seen: false } }); // Force friends to re-download card data (HTTP mode)
+    if (req.poinpointSettings.mqttEnabled) publishDeviceCards(req.User.username, req.User.friends, [ req.Device ]); // Send card (MQTT mode)
     res.send('Edit Successful');
   } else {
     res.send('Error updating device');
@@ -84,6 +86,7 @@ router.post('/edit-device/:deviceId', upload.single('avatar'), userMw.one, devMw
 
 router.get('/delete-device/:deviceId', userMw.one, devMw.one, async (req, res) => {
   if (req.Device && req.Device.userId === req.User._id) {
+    if (req.poinpointSettings.mqttEnabled) clearLocations(req.User.username, req.User.friends, [ req.Device ]);
     await req.Device.remove();
     await CardSeen.remove({ deviceId: req.params.deviceId }, { multi: true });
   }
@@ -95,8 +98,12 @@ router.get('/delete-device/:deviceId', userMw.one, devMw.one, async (req, res) =
 router.post('/update-friends', userMw.one, devMw.user, async (req, res) => {
   let friends = req.body.friends || [];
   if (typeof friends === 'string') friends = [friends];
-  const removedFriends = req.pageData.userData.friends.filter((friend) => !friends.includes(friend));
-  clearLocations(req.pageData.userData.username, removedFriends, req.pageData.userDevices);
+  if (req.poinpointSettings.mqttEnabled) {
+    const removedFriends = req.pageData.userData.friends.filter((friend) => !friends.includes(friend));
+    clearLocations(req.pageData.userData.username, removedFriends, req.pageData.userDevices);
+    const addedFriends = friends.filter((friend) => !req.pageData.userData.friends.includes(friend));
+    publishDeviceCards(req.User.username, addedFriends, req.pageData.userDevices);
+  }
   const result = await req.User.setFriends(friends);
   if (result) {
     res.send('Edit Successful');
@@ -126,12 +133,11 @@ router.get('/delete-user', userMw.one, devMw.user, groupMw.user, async (req, res
   await req.User.remove();
   await req.User.deleteDevices();
   await async.eachSeries(req.userGroups, async (group) => { await group.leave(req.User._id); });
-  if (process.env.MQTT_HOST) clearLocations(req.User.username, req.User.friends, req.userDevices);
+  if (req.poinpointSettings.mqttEnabled) clearLocations(req.User.username, req.User.friends, req.userDevices);
   res.redirect('/logout');
 });
 
 function clearLocations(username, friends, devices) {
-  if (!process.env.MQTT_HOST) return;
   friends.forEach((friend) => {
     devices.forEach((device) => {
       console.log(`Clearing topic: ${friend}/${username}/${device.name}`);
@@ -139,6 +145,20 @@ function clearLocations(username, friends, devices) {
         mqtt.publish({ cmd: 'publish', topic: `${friend}/${username}/${device.name}` }, (err) => { console.error(err); });
       } catch {
         // The topic seems to be cleared even though it throws an exception
+      }
+    });
+  });
+}
+
+function publishDeviceCards(username, friends, devices) {
+  friends.forEach((friend) => {
+    devices.forEach((device) => {
+      const topic = `${friend}/${username}/${device.name}`;
+      console.log(`Publishing card to ${topic}`);
+      try {
+        mqtt.publish(device.card, topic, (err) => { console.error(err) });
+      } catch {
+        // do nothing
       }
     });
   });

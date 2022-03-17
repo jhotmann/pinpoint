@@ -2,35 +2,37 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { User } = require('../models/User');
 
+function verifyJwt(authCookie, jwtSecret) {
+  if (!authCookie || !jwtSecret) return false;
+  try {
+    const decoded = jwt.verify(authCookie, jwtSecret);
+    console.log(`Returning ${JSON.stringify(decoded)}`);
+    return decoded;
+  } catch {
+    return false;
+  }
+}
+
 module.exports.isLoggedIn = (req, res, next) => {
   if (!req.pageData) req.pageData = {};
-  const authCookie = req.cookies.authorization;
-
-  if (authCookie) {
-    const token = authCookie;
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-      if (err) return res.sendStatus(403);
-      req.user = decoded;
-      req.pageData.username = req.user.username;
-    });
+  const user = verifyJwt(req?.cookies?.authorization, req?.envSettings?.jwtSecret);
+  if (user) {
+    req.user = user;
+    req.pageData.username = user.username;
   }
   next();
 };
 
 module.exports.jwt = (req, res, next) => {
-  const authCookie = req.cookies.authorization;
-
-  if (authCookie) {
-    const token = authCookie;
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-      if (err) return res.sendStatus(403);
-      req.user = decoded;
-      if (!req.pageData) req.pageData = {};
-      req.pageData.username = req.user.username;
-      next();
-    });
+  if (!req.pageData) req.pageData = {};
+  const user = verifyJwt(req?.cookies?.authorization, req?.envSettings?.jwtSecret);
+  if (user) {
+    console.log('User token found');
+    req.user = user;
+    req.pageData.username = user.username;
+    next();
   } else {
-    res.redirect('/login');
+    //res.redirect('/login');
   }
 };
 

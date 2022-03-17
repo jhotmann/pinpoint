@@ -1,6 +1,8 @@
 const async = require('async');
 const bcrypt = require('bcrypt');
 const { User } = require('./models/User');
+const { Device } = require('./models/Device');
+const { CardSeen } = require('./models/CardSeen');
 
 let aedes;
 const clientMap = {};
@@ -14,7 +16,7 @@ module.exports.publish = (packet, callback) => {
 };
 
 module.exports.authenticate = (client, username, password, callback) => {
-  console.log(`Auth attempt by ${username}: ${password}`);
+  console.log(`Auth attempt by ${username}`);
   const invalidUserPassword = new Error('Auth error');
   invalidUserPassword.returnCode = 4;
   User.getByUsername(username)
@@ -67,11 +69,27 @@ async function publishToFriends(client, packet) {
     });
   });
   if (!friends.includes(username)) friends.push(username);
-  friends.forEach((friend) => {
+  await async.eachSeries(friends, async (friend) => {
     console.log(`Forwarding packet to ${friend}`);
     const newPacket = { ...packet };
     newPacket.topic = newPacket.topic.replace(/^owntracks/g, friend);
     aedes.publish(newPacket);
+    // publish card if unseen
+    const deviceRegex = new RegExp(`^owntracks/${username}/`);
+    const deviceName = packet.topic.replace(deviceRegex, '');
+    const device = await Device.findOne({ userId: user._id, name: deviceName });
+    if (device && device.card) {
+      const friendData = await User.getByUsername(friend);
+      const seen = await CardSeen.findOne({ deviceId: device._id, seerId: friendData._id });
+      if (!seen?.seen) {
+        console.log(`Forwarding card to ${friend}`);
+        const cardPacket = { ...packet };
+        cardPacket.topic = `${friend}/${username}/${deviceName}`;
+        cardPacket.payload = device.card;
+        aedes.publish(cardPacket);
+        await CardSeen.see(device._id, friendData._id);
+      }
+    }
   });
 }
 

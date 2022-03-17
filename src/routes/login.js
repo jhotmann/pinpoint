@@ -6,9 +6,9 @@ const { User } = require('../models/User');
 const router = express.Router();
 
 router.get('/', (req, res) => {
-  res.clearCookie('authorization');
-  res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
-  res.header('Expires', '-1');
+  // res.clearCookie('authorization');
+  // res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+  // res.header('Expires', '-1');
   res.header('Pragma', 'no-cache');
   res.render('login.html');
 });
@@ -17,8 +17,9 @@ router.post('/', async (req, res) => {
   const { username, password } = req.body;
   if (username === 'admin') {
     if (password === process.env.ADMIN_PASSWORD) {
-      const token = jwt.sign({ username }, process.env.JWT_SECRET, { expiresIn: '1d' });
-      res.cookie('authorization', token, { sameSite: true });
+      console.dir('here')
+      const token = jwt.sign({ username }, req.envSettings.jwtSecret, { expiresIn: '1w' });
+      res.cookie('authorization', token, { sameSite: 'strict' });
       res.send('Login Successful');
     } else {
       res.send('Invalid Password');
@@ -28,8 +29,8 @@ router.post('/', async (req, res) => {
     if (user) {
       const match = await bcrypt.compare(password, user.passwordHash);
       if (match) {
-        const token = jwt.sign({ username }, process.env.JWT_SECRET, { expiresIn: '1y' });
-        res.cookie('authorization', token, { sameSite: true });
+        const token = jwt.sign({ username }, req.envSettings.jwtSecret, { expiresIn: '1y' });
+        res.cookie('authorization', token, { sameSite: 'strict' });
         res.send('Login Successful');
       } else {
         res.send('Invalid Password');
