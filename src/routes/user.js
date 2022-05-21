@@ -19,6 +19,7 @@ router.get('/', userMw.one, devMw.user, userMw.all, groupMw.user, async (req, re
   if (req.user.username === 'admin') {
     res.redirect('/admin');
   } else {
+    res.header('HX-Push', '/user');
     res.render('user.html', req.pageData);
   }
 });
@@ -49,7 +50,7 @@ router.post('/add-device', upload.single('avatar'), userMw.one, async (req, res)
   if (existingInitials) return res.send('Initials Invalid');
   const device = await Device.create(req.body.deviceName, req.body.initials, card, req.User);
   if (device) {
-    if (req.poinpointSettings.mqttEnabled) publishDeviceCards(req.User.username, req.User.friends, [ device ]);
+    if (req.envSettings.mqttEnabled) publishDeviceCards(req.User.username, req.User.friends, [ device ]);
     res.send('Add Successful');
   } else {
     res.send('Error');
@@ -77,7 +78,7 @@ router.post('/edit-device/:deviceId', upload.single('avatar'), userMw.one, devMw
   if (req.Device && req.Device.userId === req.User._id) {
     req.Device = await req.Device.update(req.body.deviceName, req.body.initials, card, req.User);
     await CardSeen.update({ deviceId: req.params.deviceId }, { $set: { seen: false } }); // Force friends to re-download card data (HTTP mode)
-    if (req.poinpointSettings.mqttEnabled) publishDeviceCards(req.User.username, req.User.friends, [ req.Device ]); // Send card (MQTT mode)
+    if (req.envSettings.mqttEnabled) publishDeviceCards(req.User.username, req.User.friends, [ req.Device ]); // Send card (MQTT mode)
     res.send('Edit Successful');
   } else {
     res.send('Error updating device');
@@ -110,6 +111,16 @@ router.post('/update-friends', userMw.one, devMw.user, async (req, res) => {
   } else {
     res.send('Error');
   }
+});
+
+// !!!! notifications !!!!
+
+router.post('/set-notification', userMw.one, async (req, res) => {
+  //TODO
+});
+
+router.get('/test-notification', userMw.one, async (req, res) => {
+  //TODO
 });
 
 // !!!! danger !!!!

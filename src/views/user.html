@@ -1,66 +1,7 @@
 {% extends "navbar.html" %}
 
 {% block body %}
-{% if not userData.helpDismissed %}
-<div class="card">
-  <div class="card-body">
-    <h5 class="card-title">Welcome to Pinpoint!</h5>
-    <p class="card-text">Let's get you set up</p>
-    <ul class="list-group list-group-flush">
-      <li class="list-group-item">
-        <div class="container">
-          <div class="row justify-content-start align-items-center">
-            <div class="col">📱 Install the OwnTracks app for Android <a href="https://play.google.com/store/apps/details?id=org.owntracks.android" class="btn btn-info ms-3">Google Play</a> <a href="https://github.com/owntracks/android/releases" class="btn btn-dark ms-3">GitHub</a></div>
-          </div>
-        </div>
-      </li>
-      <li class="list-group-item">
-        <div class="container">
-          <div class="row justify-content-start align-items-center">
-            <div class="col">📱 Install the OwnTracks app for iOS <a href="https://apps.apple.com/us/app/owntracks/id692424691" class="btn btn-dark ms-3">App Store</a></div>
-          </div>
-        </div>
-      </li>
-      <li class="list-group-item">
-        <div class="container">
-          <div class="row justify-content-start align-items-center">
-            <div class="col">➕ Create devices in Pinpoint for devices you want to track</div>
-          </div>
-        </div>
-      </li>
-      <li class="list-group-item">
-        <div class="container">
-          <div class="row justify-content-start align-items-center">
-            <div class="col">📲 Select the "OwnTracks Link" on a device with OwnTracks installed and you will be prompted to import the configuration.</div>
-          </div>
-        </div>
-      </li>
-      <li class="list-group-item">
-        <div class="container">
-          <div class="row justify-content-start align-items-center">
-            <div class="col">🙌 Select the friends you want to share your location with. Anyone you set as a friend will be able to see your location.</div>
-          </div>
-        </div>
-      </li>
-      <li class="list-group-item">
-        <div class="container">
-          <div class="row justify-content-start align-items-center">
-            <div class="col">👨‍👩‍👧‍👦 Create or join groups to make friend management easier. All members of a group will be able to see your location regardless of friend-status.</div>
-          </div>
-        </div>
-      </li>
-      <li class="list-group-item">
-        <div class="container">
-          <div class="row justify-content-start align-items-center">
-            <div class="col"></div>
-          </div>
-        </div>
-      </li>
-    </ul>
-    <a href="/user/dismiss-help" class="btn btn-secondary">Dismiss</a>
-  </div>
-</div>
-{% endif %}
+{% if not userData.helpDismissed %}{% include "user-help.html" %}{% endif %}
 <h2>Devices</h2>
 
 <table id="devices" class="table table-striped table-hover align-middle">
@@ -136,6 +77,17 @@
   <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#create-group-modal">Create Group</button>
 </div>
 
+{% if settings.notificationsEnabled %}
+<h2 class="pt-3">Notifications</h2>
+<p>If you would like to receive notifications when a user adds you as a friend, you're invited to a group,
+  or when a user accepts your group invite, put your email address here. Also accepts
+  <a href="https://github.com/caronc/apprise/wiki" target="_blank">Apprise</a> URIs if you would like to reveive
+  notifications another way.</p>
+
+{% include "user-notification.html" %}
+
+{% endif %}
+
 <div>
   <button type="button" class="btn btn-danger mt-5" data-bs-toggle="modal" data-bs-target="#reset-password-modal">Change Password</button>
 </div>
@@ -144,77 +96,14 @@
   <button type="button" class="btn btn-danger mt-3 mb-5" data-bs-toggle="modal" data-bs-target="#delete-modal">Delete User Account</button>
 </div>
 
-<!-- Create Group Modal -->
-<div class="modal fade" id="create-group-modal" tabindex="-1" aria-labelledby="create-group-modal-label" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="create-group-modal-label">Create Group</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form id="create-group-form">
-          <div class="form-floating">
-            <input type="text" class="form-control" id="groupName" name="groupName" placeholder="Group Name" required>
-            <label for="groupName">Group Name</label>
-            <div class="invalid-feedback">
-              Group name taken
-            </div>
-          </div>
-          <button class="btn btn-primary mt-2" type="submit">Create</button>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
+{% include "modal-create-group.html" %}
+{% include "modal-reset-password.html" %}
+{% include "modal-delete-user.html" %}
 
-<!-- Reset Password Modal -->
-<div class="modal fade" id="reset-password-modal" tabindex="-1" aria-labelledby="reset-password-modal-label" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="reset-password-modal-label">Change Password</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form id="reset-password-form">
-          <div class="form-floating">
-            <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
-            <label for="password">Password</label>
-          </div>
-          <div class="form-floating mt-3">
-            <input type="password" class="form-control" id="password2" name="password2" placeholder="Password" required>
-            <label for="password2">Confirm Password</label>
-            <div class="invalid-feedback">
-              Passwords do not match
-            </div>
-          </div>
-      
-          <button class="w-100 btn btn-lg btn-danger mt-3" type="submit">Change Password</button>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Delete Modal -->
-<div class="modal fade" id="delete-modal" tabindex="-1" aria-labelledby="delete-modal-label" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="delete-modal-label">Delete User Account</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        This is a real delete, not like a Facebook delete. This action can't be undone!
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <a class="btn btn-danger" href="/user/delete-user" role="button">Delete</a>
-      </div>
-    </div>
-  </div>
-</div>
 {% endblock %}
 
-{% block scripts %}<script src="javascripts/user.js"></script>{% endblock %}
+{% block scripts %}
+<script src="javascripts/htmx.min.js"></script>
+<script src="javascripts/json-enc.js"></script>
+<script src="javascripts/user.js"></script>
+{% endblock %}

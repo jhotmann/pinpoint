@@ -6,23 +6,19 @@ const { User } = require('../models/User');
 const router = express.Router();
 
 router.get('/', (req, res) => {
-  // res.clearCookie('authorization');
-  // res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
-  // res.header('Expires', '-1');
   res.header('Pragma', 'no-cache');
   res.render('login.html');
 });
 
-router.post('/', async (req, res) => {
+router.post('/', async (req, res, next) => {
   const { username, password } = req.body;
   if (username === 'admin') {
     if (password === process.env.ADMIN_PASSWORD) {
-      console.dir('here')
       const token = jwt.sign({ username }, req.envSettings.jwtSecret, { expiresIn: '1w' });
       res.cookie('authorization', token, { sameSite: 'strict' });
-      res.send('Login Successful');
+      res.redirect('/admin');
     } else {
-      res.send('Invalid Password');
+      res.render('login.html', { invalidPassword: true });
     }
   } else {
     const user = await User.getByUsername(username);
@@ -31,12 +27,12 @@ router.post('/', async (req, res) => {
       if (match) {
         const token = jwt.sign({ username }, req.envSettings.jwtSecret, { expiresIn: '1y' });
         res.cookie('authorization', token, { sameSite: 'strict' });
-        res.send('Login Successful');
+        res.redirect('/user');
       } else {
-        res.send('Invalid Password');
+        res.render('login.html', { invalidPassword: true });
       }
     } else {
-      res.send('Invalid Username');
+      res.render('login.html', { invalidUsername: true });
     }
   }
 });

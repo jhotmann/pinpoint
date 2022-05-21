@@ -1,3 +1,4 @@
+require('dotenv').config();
 const cookieParser = require('cookie-parser');
 const express = require('express');
 const logger = require('morgan');
@@ -5,8 +6,6 @@ const nunjucks = require('nunjucks');
 const path = require('path');
 const auth = require('./middleware/auth');
 const settings = require('./middleware/settings');
-
-require('dotenv').config();
 
 const app = express();
 

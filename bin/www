@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+require('dotenv').config();
+
 const aedes = require('aedes')();
 const { CronJob } = require('cron');
 const http = require('http');

@@ -1,0 +1,4 @@
+<input class="form-check-input" type="checkbox"
+  role="switch" id="{{ user._id }}-admin-switch"
+  hx-post="/admin/elevate-user/{{ user._id }}/{{ 'false' if user.isAdmin else 'true' }}"
+  hx-swap="outerHTML"{% if user.isAdmin %} checked{% endif %}>

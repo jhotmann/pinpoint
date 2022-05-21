@@ -1,0 +1,18 @@
+{% for user in allUsers %}
+<tr>
+  <th scope="row">{{ user.username }}</th>
+  <td>{{ allDevices | arrayFilter('userId', user._id) | length }}</td>
+  <td>{{ user.friends.length }}</td>
+  <td>{{ allGroups | arrayFilterPropIncludes('members', 'userId', user._id) | length }}</td>
+  <td>
+    <div class="form-check form-switch">
+      {% include "admin-user-input.html" %}
+      <label class="form-check-label" for="{{ user._id }}-admin-switch">Admin</label>
+    </div>
+    <button type="button" class="btn btn-danger"
+        hx-get="/admin/delete-user/{{ user._id }}"
+        hx-target="#user-table-body"
+        hx-confirm="This action cannot be undone, are you sure you want to delete this {{ user.username }}?">Delete</button>
+  </td>
+</tr>
+{% endfor %}
