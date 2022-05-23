@@ -1,0 +1,20 @@
+{% for group in userGroups %}
+    <tr>
+      <th scope="row">{{ group.name }}</th>
+      <td>{{ group.members | join(', ', 'username') }}</td>
+      <td>
+        {% if group.adminId === userData._id %}
+        <!--<a class="btn btn-secondary" href="/group/edit/{{ group._id }}" role="button">Edit</a>-->
+        <button class="btn btn-secondary" role="button"
+            data-bs-toggle="modal" data-bs-target="#edit-group-modal"
+            hx-get="/group/edit/{{ group._id }}" hx-target="#edit-group-dialog">Edit</button>
+        {% else %}
+          {% if group.accepted %}
+          <a class="btn btn-danger" href="/group/leave/{{ group._id }}" role="button">Leave</a>
+          {% else %}
+          <a class="btn btn-success" href="/group/accept/{{ group._id }}" role="button">Accept Invite</a> <a class="btn btn-danger" href="/group/leave/{{ group._id }}" role="button">Decline</a>
+          {% endif %}
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}

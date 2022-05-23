@@ -11,6 +11,7 @@ const { Location } = require('./Location');
   username: "string",
   passwordHash: "string",
   friends: ["string"],
+  notificationTarget: "string",
   createdAt: Date,
   updatedAt: Date,
 }
@@ -59,6 +60,12 @@ class User extends Base {
 
   async setPasswordHash(passwordHash) {
     this.passwordHash = passwordHash;
+    const user = await this.save();
+    return user;
+  }
+
+  async setNotificationTarget(target) {
+    this.notificationTarget = target;
     const user = await this.save();
     return user;
   }

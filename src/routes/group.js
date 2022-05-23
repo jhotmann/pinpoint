@@ -7,42 +7,39 @@ const { User } = require('../models/User');
 
 const router = express.Router();
 
-// Make sure the user requesting this page is the group admin
-// Depends upon db.mwUser and db.mwGroup
-// const isGroupAdmin = async (req, res, next) => {
-//   if (req?.pageData?.groupData?.adminId && req.pageData.groupData.adminId === req.pageData.userData._id) {
-//     next();
-//   } else {
-//     res.sendStatus(403);
-//   }
-// };
-
 router.post('/create', userMw.one, async (req, res) => {
   const group = await Group.create(req.body.groupName, req.User);
   if (group) {
-    res.send('Add Successful');
+    req.pageData.userGroups = await req.User.getGroups();
+    res.render('user-groups.html', req.pageData);
   } else {
     res.send('Error');
   }
 });
 
-router.get('/edit/:groupId', userMw.one, userMw.all, groupMw.one, groupMw.admin, async (req, res) => {
-  res.render('editGroup.html', req.pageData);
+router.get('/refresh', userMw.one, groupMw.user, (req, res) => {
+  res.render('user-groups.html', req.pageData);
 });
 
-router.post('/:groupId/invite', groupMw.one, async (req, res) => {
+router.get('/edit/:groupId', userMw.one, userMw.all, groupMw.one, groupMw.admin, async (req, res) => {
+  res.render('form-edit-group.html', req.pageData);
+});
+
+router.post('/:groupId/invite', userMw.one, userMw.all, groupMw.one, groupMw.admin, async (req, res) => {
   let members = req.body.members || [];
   if (typeof members === 'string') members = [members];
   await async.forEachSeries(members, async (member) => {
     const user = await User.get(member);
     await req.Group.invite(user);
   });
-  res.send('Done');
+  req.pageData.groupData = await Group.getWithMemberNames(req.Group._id);
+  res.render('form-edit-group.html', req.pageData);
 });
 
-router.get('/remove-user/:groupId/:userId', userMw.one, groupMw.one, groupMw.admin, async (req, res) => {
+router.get('/remove-user/:groupId/:userId', userMw.one, userMw.all, groupMw.one, groupMw.admin, async (req, res) => {
   await req.Group.leave(req.params.userId);
-  res.redirect(`/group/edit/${req.params.groupId}`);
+  req.pageData.groupData = await Group.getWithMemberNames(req.Group._id);
+  res.render('form-edit-group.html', req.pageData);
 });
 
 router.get('/accept/:groupId', userMw.one, groupMw.one, async (req, res) => {

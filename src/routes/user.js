@@ -1,3 +1,4 @@
+const apprise = require('../apprise');
 const async = require('async');
 const bcrypt = require('bcrypt');
 const express = require('express');
@@ -26,7 +27,7 @@ router.get('/', userMw.one, devMw.user, userMw.all, groupMw.user, async (req, re
 
 router.get('/dismiss-help', userMw.one, async (req, res) => {
   await req.User.dismissHelp();
-  res.redirect('/user');
+  res.send('');
 });
 
 // !!!! devices !!!!
@@ -35,7 +36,7 @@ router.get('/add-device', async (req, res) => {
   if (req.user.username === 'admin') {
     res.redirect('/admin');
   } else {
-    res.render('addDevice.html', req.pageData);
+    res.render('form-add-edit-device.html', req.pageData);
   }
 });
 
@@ -51,18 +52,18 @@ router.post('/add-device', upload.single('avatar'), userMw.one, async (req, res)
   const device = await Device.create(req.body.deviceName, req.body.initials, card, req.User);
   if (device) {
     if (req.envSettings.mqttEnabled) publishDeviceCards(req.User.username, req.User.friends, [ device ]);
-    res.send('Add Successful');
-  } else {
-    res.send('Error');
   }
+  const userDevices = await Device.getByUserId(req.User._id);
+  res.render('user-devices.html', { userDevices });
 });
 
 router.get('/edit-device/:deviceId', userMw.one, devMw.one, async (req, res) => {
   if (req.User && req.Device && req.Device.userId === req.User._id) {
     req.pageData.deviceData = req.Device.toPOJO();
-    res.render('editDevice.html', req.pageData);
+    res.render('form-add-edit-device.html', req.pageData);
   } else {
-    res.redirect('/user');
+    // TODO send error text
+    res.send('');
   }
 });
 
@@ -79,19 +80,19 @@ router.post('/edit-device/:deviceId', upload.single('avatar'), userMw.one, devMw
     req.Device = await req.Device.update(req.body.deviceName, req.body.initials, card, req.User);
     await CardSeen.update({ deviceId: req.params.deviceId }, { $set: { seen: false } }); // Force friends to re-download card data (HTTP mode)
     if (req.envSettings.mqttEnabled) publishDeviceCards(req.User.username, req.User.friends, [ req.Device ]); // Send card (MQTT mode)
-    res.send('Edit Successful');
-  } else {
-    res.send('Error updating device');
   }
+  const userDevices = await Device.getByUserId(req.User._id);
+  res.render('user-devices.html', { userDevices });
 });
 
 router.get('/delete-device/:deviceId', userMw.one, devMw.one, async (req, res) => {
   if (req.Device && req.Device.userId === req.User._id) {
-    if (req.poinpointSettings.mqttEnabled) clearLocations(req.User.username, req.User.friends, [ req.Device ]);
+    if (req.envSettings.mqttEnabled) clearLocations(req.User.username, req.User.friends, [ req.Device ]);
     await req.Device.remove();
     await CardSeen.remove({ deviceId: req.params.deviceId }, { multi: true });
   }
-  res.redirect('/user');
+  const userDevices = await Device.getByUserId(req.User._id);
+  res.render('user-devices.html', { userDevices });
 });
 
 // !!!! friends !!!!
@@ -99,7 +100,7 @@ router.get('/delete-device/:deviceId', userMw.one, devMw.one, async (req, res) =
 router.post('/update-friends', userMw.one, devMw.user, async (req, res) => {
   let friends = req.body.friends || [];
   if (typeof friends === 'string') friends = [friends];
-  if (req.poinpointSettings.mqttEnabled) {
+  if (req.envSettings.mqttEnabled) {
     const removedFriends = req.pageData.userData.friends.filter((friend) => !friends.includes(friend));
     clearLocations(req.pageData.userData.username, removedFriends, req.pageData.userDevices);
     const addedFriends = friends.filter((friend) => !req.pageData.userData.friends.includes(friend));
@@ -116,11 +117,19 @@ router.post('/update-friends', userMw.one, devMw.user, async (req, res) => {
 // !!!! notifications !!!!
 
 router.post('/set-notification', userMw.one, async (req, res) => {
-  //TODO
+  const input = req.body['notification-input'];
+  await req.User.setNotificationTarget(input);
+  res.render('user-notification-button.html');
 });
 
-router.get('/test-notification', userMw.one, async (req, res) => {
-  //TODO
+router.post('/test-notification', userMw.one, async (req, res) => {
+  const input = req.body['notification-input'];
+  if (apprise.isEmail(input)) {
+    apprise.sendEmail("Pinpoint Test", "This is a test email from Pinpoint", input);
+  } else {
+    apprise.sendNotification(input, "Pinpoint Test", "This is a test notification from Pinpoint");
+  }
+  res.send('<button id="test-notification-button" type="button" class="btn btn-primary mt-2" disabled>Testing!</button>');
 });
 
 // !!!! danger !!!!

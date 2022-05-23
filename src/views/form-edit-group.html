@@ -1,0 +1,56 @@
+<div class="modal-content">
+  <div class="modal-header">
+    <h5 class="modal-title" id="create-group-modal-label">Edit Group</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" hx-get="/group/refresh" hx-target="#groups-table-body"></button>
+  </div>
+  <div class="modal-body">
+    <!-- TODO ability to edit name -->
+    <h2>Members</h2>
+
+    <table id="members" class="table table-striped table-hover align-middle">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Accepted</th>
+          <th scope="col">Manage</th>
+        </tr>
+      </thead>
+      <tbody id="member-table-body">
+        {% for member in groupData.members %}
+        <tr>
+          <th scope="row">{{ member.username }}</th>
+          <th scope="row">{{ "Yes" if member.accepted else "No" }}</th>
+          {% if member.userId === userData._id %}
+          <td scope="row"></td>
+          {% else %}
+          <td scope="row">
+            <button class="btn btn-danger" role="button" hx-target="#edit-group-dialog"
+                hx-get="/group/remove-user/{{ groupData._id }}/{{ member.userId }}">Remove</button>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <h2 class="mt-3">Invite</h2>
+    <form id="invite-form" hx-post="/group/{{ groupData._id }}/invite" hx-ext="json-enc"
+        hx-target="#edit-group-dialog">
+      {% for user in allUsers %}
+      {% if not groupData.memberNames.includes(user.username) %}
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="{{ user._id }}" id="{{ user.username }}-invite-check" name="members">
+        <label class="form-check-label" for="{{ user.username }}-invite-check">
+          {{ user.username }}
+        </label>
+      </div>
+      {% endif %}
+      {% endfor %}
+
+      <button id="invite-button" class="btn btn-primary" type="submit">Invite Users</button>
+    </form>
+
+    <div>
+      <button type="button" class="btn btn-danger mt-5" data-bs-toggle="modal" data-bs-target="#delete-modal">Delete Group</button>
+    </div>
+  </div>
+</div>

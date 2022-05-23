@@ -1,0 +1,12 @@
+<!-- This should be removed at some point -->
+{% set urlRegExp = r/^owntracks:\/\/[^\/]/ %}
+{% for device in userDevices %}
+<tr>
+  <th scope="row">{{ device.name }}</th>
+  <th scope="row"><a class="btn btn-info" href="{{ device.configLink | replace(urlRegExp, 'owntracks:///c') }}" role="button">OwnTracks Link</a></th>
+  <td scope="row">
+    <button class="btn btn-secondary" role="button" data-bs-toggle="modal" data-bs-target="#add-edit-device-modal"
+        hx-get="/user/edit-device/{{ device._id }}" hx-target="#add-edit-device-dialog">Edit</button>
+  </td>
+</tr>
+{% endfor %}

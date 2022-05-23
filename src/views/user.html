@@ -12,18 +12,12 @@
       <th scope="col">Manage</th>
     </tr>
   </thead>
-  <tbody>
-    {% set urlRegExp = r/^owntracks:\/\/[^\/]/ %}
-    {% for device in userDevices %}
-    <tr>
-      <th scope="row">{{ device.name }}</th>
-      <th scope="row"><a class="btn btn-info" href="{{ device.configLink | replace(urlRegExp, 'owntracks:///c') }}" role="button">OwnTracks Link</a></th>
-      <td scope="row"><a class="btn btn-secondary" href="/user/edit-device/{{ device._id }}" role="button">Edit</a></td>
-    </tr>
-    {% endfor %}
+  <tbody id="devices-table-body">
+    {% include "user-devices.html" %}
   </tbody>
 </table>
-<a class="btn btn-primary" href="/user/add-device" role="button">Add Device</a>
+<button class="btn btn-primary" role="button" data-bs-toggle="modal" data-bs-target="#add-edit-device-modal"
+    hx-get="/user/add-device" hx-target="#add-edit-device-dialog">Add Device</button>
 
 <h2 class="pt-3">Friends</h2>
 
@@ -52,24 +46,8 @@
       <th scope="col">Manage</th>
     </tr>
   </thead>
-  <tbody>
-    {% for group in userGroups %}
-    <tr>
-      <th scope="row">{{ group.name }}</th>
-      <td>{{ group.members | join(', ', 'username') }}</td>
-      <td>
-        {% if group.adminId === userData._id %}
-        <a class="btn btn-secondary" href="/group/edit/{{ group._id }}" role="button">Edit</a>
-        {% else %}
-          {% if group.accepted %}
-          <a class="btn btn-danger" href="/group/leave/{{ group._id }}" role="button">Leave</a>
-          {% else %}
-          <a class="btn btn-success" href="/group/accept/{{ group._id }}" role="button">Accept Invite</a> <a class="btn btn-danger" href="/group/leave/{{ group._id }}" role="button">Decline</a>
-          {% endif %}
-        {% endif %}
-      </td>
-    </tr>
-    {% endfor %}
+  <tbody id="groups-table-body">
+    {% include "user-groups.html" %}
   </tbody>
 </table>
 
@@ -84,7 +62,12 @@
   <a href="https://github.com/caronc/apprise/wiki" target="_blank">Apprise</a> URIs if you would like to reveive
   notifications another way.</p>
 
-{% include "user-notification.html" %}
+  <input id="notification-input" name="notification-input" value="{{ userData.notificationTarget }}"
+  class="form-control" type="text" placeholder="Email or Apprise URI" aria-label="notification-input"
+  hx-post="/user/set-notification" hx-target="#test-notification-button" hx-swap="outerHTML"
+  hx-trigger="keyup changed delay:1s" hx-ext="json-enc">
+
+  {% include "user-notification-button.html" %}
 
 {% endif %}
 
@@ -97,8 +80,10 @@
 </div>
 
 {% include "modal-create-group.html" %}
+{% include "modal-edit-group.html" %}
 {% include "modal-reset-password.html" %}
 {% include "modal-delete-user.html" %}
+{% include "modal-add-edit-device.html" %}
 
 {% endblock %}
 

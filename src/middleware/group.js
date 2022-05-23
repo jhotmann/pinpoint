@@ -3,10 +3,9 @@ const { Group } = require('../models/Group');
 // Depends upon req.params.groupId
 module.exports.one = async (req, res, next) => {
   if (!req.pageData) req.pageData = {};
-  req.Group = await Group.get(req.params.groupId);
+  req.Group = await Group.getWithMemberNames(req.params.groupId);
   if (req.Group) {
     req.pageData.groupData = req.Group.toPOJO();
-    req.pageData.groupData.memberNames = req.Group.members.map((member) => member.username);
   }
   next();
 };
