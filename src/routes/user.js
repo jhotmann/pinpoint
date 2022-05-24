@@ -63,7 +63,7 @@ router.get('/edit-device/:deviceId', userMw.one, devMw.one, async (req, res) => 
     res.render('form-add-edit-device.html', req.pageData);
   } else {
     // TODO send error text
-    res.send('');
+    res.send('Error');
   }
 });
 
@@ -97,7 +97,7 @@ router.get('/delete-device/:deviceId', userMw.one, devMw.one, async (req, res) =
 
 // !!!! friends !!!!
 
-router.post('/update-friends', userMw.one, devMw.user, async (req, res) => {
+router.post('/update-friends', userMw.one, userMw.all, devMw.user, async (req, res) => {
   let friends = req.body.friends || [];
   if (typeof friends === 'string') friends = [friends];
   if (req.envSettings.mqttEnabled) {
@@ -106,9 +106,9 @@ router.post('/update-friends', userMw.one, devMw.user, async (req, res) => {
     const addedFriends = friends.filter((friend) => !req.pageData.userData.friends.includes(friend));
     publishDeviceCards(req.User.username, addedFriends, req.pageData.userDevices);
   }
-  const result = await req.User.setFriends(friends);
-  if (result) {
-    res.send('Edit Successful');
+  req.pageData.userData = await req.User.setFriends(friends);
+  if (req.pageData.userData) {
+    res.render('user-friends.html', req.pageData);
   } else {
     res.send('Error');
   }

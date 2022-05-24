@@ -1,3 +1,4 @@
+const apprise = require('../apprise');
 const async = require('async');
 const express = require('express');
 const groupMw = require('../middleware/group');
@@ -31,6 +32,7 @@ router.post('/:groupId/invite', userMw.one, userMw.all, groupMw.one, groupMw.adm
   await async.forEachSeries(members, async (member) => {
     const user = await User.get(member);
     await req.Group.invite(user);
+    await apprise.send(`You've been invited to a group on Pinpoint`, `${req.User.username} has invited you to the ${req.Group.name} group on Pinpoint!\n\nManage the request here: ${req.protocol}://${req.get('host')}/user`, user.notificationTarget);
   });
   req.pageData.groupData = await Group.getWithMemberNames(req.Group._id);
   res.render('form-edit-group.html', req.pageData);
@@ -44,12 +46,14 @@ router.get('/remove-user/:groupId/:userId', userMw.one, userMw.all, groupMw.one,
 
 router.get('/accept/:groupId', userMw.one, groupMw.one, async (req, res) => {
   await req.Group.accept(req.User._id);
-  res.redirect('/user#groups');
+  req.pageData.userGroups = await req.User.getAcceptedGroups();
+  res.render('user-groups.html', req.pageData);
 });
 
 router.get('/leave/:groupId', userMw.one, groupMw.one, async (req, res) => {
   await req.Group.leave(req.User._id);
-  res.redirect('/user#groups');
+  req.pageData.userGroups = await req.User.getAcceptedGroups();
+  res.render('user-groups.html', req.pageData);
 });
 
 router.get('/delete/:groupId', userMw.one, groupMw.one, groupMw.admin, async (req, res) => {

@@ -1,20 +1,10 @@
-$(() => {
-  const theForm = $('#registration-form');
-
-  theForm.on('submit', (event) => {
-    event.preventDefault();
-    $('#password2').removeClass('is-invalid');
-    if ($('#password').val() === $('#password2').val()) {
-      $.post(window.location.pathname, theForm.serialize(), (response) => {
-        switch (response) {
-          case 'Register Successful':
-            window.location.href = `${window.location.origin}/login`;
-            break;
-          default:
-        }
-      });
-    } else {
-      $('#password2').addClass('is-invalid');
-    }
-  });
-});
+function checkPasswordsMatch(input) {
+  const password1value = document.getElementById('password').value;
+  if (input.value === password1value) {
+    input.setCustomValidity('');
+    input.classList.remove('is-invalid');
+  } else {
+    input.setCustomValidity('Passwords don\'t match');
+    input.classList.add('is-invalid');
+  }
+}

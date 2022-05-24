@@ -8,7 +8,7 @@ const appriseEmailUrl = process.env['APPRISE_EMAIL_URL'];
 module.exports.envSettings = (req, res, next) => {
   req.envSettings = {
     mqttEnabled: mqttHost ? true : false,
-    notificationsEnabled: appriseHost ? true : false,
+    notificationsEnabled: appriseHost && appriseEmailUrl ? true : false,
     emailEnabled: appriseEmailUrl ? true : false,
     jwtSecret: jwts && jwts !== 'pleasechangeme' ? jwts : cryptoRandomString({ length: 40, type: 'alphanumeric' }),
   };

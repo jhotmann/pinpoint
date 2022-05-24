@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.get('/', (req, res) => {
   res.header('Pragma', 'no-cache');
+  res.header('HX-Push', '/login');
   res.render('login.html');
 });
 

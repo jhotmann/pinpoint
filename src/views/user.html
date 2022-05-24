@@ -21,20 +21,9 @@
 
 <h2 class="pt-3">Friends</h2>
 
-<form id="friend-form">
-  {% for user in allUsers %}
-  {% if user.username != username %}
-  <div class="form-check">
-    <input class="form-check-input" type="checkbox" value="{{ user.username }}" id="{{ user.username }}-check" name="friends"{% if userData.friends.includes(user.username) %} checked{% endif %}>
-    <label class="form-check-label" for="{{ user.username }}-check">
-      {{ user.username }}
-    </label>
-  </div>
-  {% endif %}
-  {% endfor %}
-
-  <button id="friend-save" class="btn btn-primary" type="submit">Save Friends</button>
-</form>
+<div id="friend-form">
+  {% include "user-friends.html" %}
+</div>
 
 <h2 class="pt-3">Groups</h2>
 
@@ -88,7 +77,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="javascripts/htmx.min.js"></script>
-<script src="javascripts/json-enc.js"></script>
+<script src="/javascripts/htmx.min.js"></script>
+<script src="/javascripts/json-enc.js"></script>
 <script src="javascripts/user.js"></script>
 {% endblock %}

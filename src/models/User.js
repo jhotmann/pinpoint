@@ -90,6 +90,15 @@ class User extends Base {
     return groups;
   }
 
+  async getAcceptedGroups() {
+    const groups = await this.getGroups();
+    return groups.map((group) => group.toPOJO())
+      .map((group) => {
+        group.accepted = group.members.find((member) => member.userId === this._id).accepted;
+        return group;
+      });
+  }
+
   async getUsersSharingWith() {
     const groups = await this.getGroups();
     let sharers = [];

@@ -10,7 +10,7 @@ const saltRounds = 15;
 router.get('/:registrationId', async (req, res) => {
   const registration = await Registration.getByGuid(req.params.registrationId);
   if (registrationValid(registration)) {
-    res.render('register.html');
+    res.render('register.html', { registrationId: req.params.registrationId });
   } else {
     res.send('Registration Used, please request a new link.');
   }
@@ -23,12 +23,12 @@ router.post('/:registrationId', async (req, res) => {
     const user = await User.create(username, password);
     if (user) {
       await registration.use();
-      res.send('Register Successful');
+      res.redirect('/login');
     } else {
-      res.send('Error Creating User');
+      res.render('register.html', { registrationId: req.params.registrationId, error: true });
     }
   } else {
-    res.send('Registration Used, please request a new link.');
+    res.render('register.html', { registrationId: req.params.registrationId, invalid: true });
   }
 });
 
