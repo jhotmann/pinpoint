@@ -47,6 +47,8 @@ router.get('/remove-user/:groupId/:userId', userMw.one, userMw.all, groupMw.one,
 router.get('/accept/:groupId', userMw.one, groupMw.one, async (req, res) => {
   await req.Group.accept(req.User._id);
   req.pageData.userGroups = await req.User.getAcceptedGroups();
+  const groupAdmin = await User.get(req.Group.adminId);
+  await apprise.send('Pinpoint - group invite accepted', `${req.User.username} accepted the invite to the ${req.Group.name} group`, groupAdmin.notificationTarget);
   res.render('user-groups.html', req.pageData);
 });
 

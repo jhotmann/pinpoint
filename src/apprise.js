@@ -26,9 +26,7 @@ module.exports.sendNotification = async (urls, title, body) => {
     const resp = await superagent
       .post(`${baseUrl}/notify/`)
       .send({ urls, title, body });
-    if (resp.statusCode === 200) {
-      console.log(`Notification sent to ${urls}`);
-    } else {
+    if (resp.statusCode !== 200) {
       console.error(`Error sending notification: ${resp.error ? resp.error.message : resp.statusCode}`);
     }
   }

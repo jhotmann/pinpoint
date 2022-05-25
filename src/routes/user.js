@@ -11,6 +11,7 @@ const { Device } = require('../models/Device');
 const groupMw = require('../middleware/group');
 const mqtt = require('../mqtt');
 const userMw = require('../middleware/user');
+const { User } = require('../models/User');
 
 const router = express.Router();
 const upload = multer({ dest: 'data/uploads/' })
@@ -100,11 +101,17 @@ router.get('/delete-device/:deviceId', userMw.one, devMw.one, async (req, res) =
 router.post('/update-friends', userMw.one, userMw.all, devMw.user, async (req, res) => {
   let friends = req.body.friends || [];
   if (typeof friends === 'string') friends = [friends];
+  const addedFriends = friends.filter((friend) => !req.pageData.userData.friends.includes(friend));
   if (req.envSettings.mqttEnabled) {
     const removedFriends = req.pageData.userData.friends.filter((friend) => !friends.includes(friend));
     clearLocations(req.pageData.userData.username, removedFriends, req.pageData.userDevices);
-    const addedFriends = friends.filter((friend) => !req.pageData.userData.friends.includes(friend));
     publishDeviceCards(req.User.username, addedFriends, req.pageData.userDevices);
+  }
+  if (req.envSettings.notificationsEnabled) {
+    await async.eachSeries(addedFriends, async (friend) => {
+      const friendUser = await User.getByUsername(friend);
+      await apprise.send(`Pinpoint - ${req.User.username} added you as a friend`, `You will now see ${req.User.username}'s location, but they will only see yours if you add them as a friend`, friendUser?.notificationTarget);
+    });
   }
   req.pageData.userData = await req.User.setFriends(friends);
   if (req.pageData.userData) {

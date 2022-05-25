@@ -66,7 +66,6 @@ describe('Registration links', () => {
     const registrationLinksHtml = response.text;
     const matches = [...registrationLinksHtml.matchAll(/\/register\/([\w]{40})/g)];
     guid = matches[matches.length - 1][1];
-    console.log(guid);
   });
 
   test('The admin user should be able to create registration links', async () => {
