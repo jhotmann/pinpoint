@@ -1,4 +1,4 @@
-FROM node:16
+FROM node:lts-bullseye
 
 # Default environment variables
 ENV BEHIND_PROXY=true
