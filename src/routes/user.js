@@ -153,7 +153,7 @@ router.get('/delete-user', userMw.one, devMw.user, groupMw.user, async (req, res
   await req.User.remove();
   await req.User.deleteDevices();
   await async.eachSeries(req.userGroups, async (group) => { await group.leave(req.User._id); });
-  if (req.poinpointSettings.mqttEnabled) clearLocations(req.User.username, req.User.friends, req.userDevices);
+  if (req.envSettings.mqttEnabled) clearLocations(req.User.username, req.User.friends, req.userDevices);
   res.redirect('/logout');
 });
 

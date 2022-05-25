@@ -39,8 +39,7 @@ describe('Use registration code', () => {
       .type('form')
       .send({ username: 'jester-register' })
       .send({ password: 'jester' });
-    expect(response.statusCode).toBe(200);
-    expect(response.text).toBe('Register Successful');
+    expect(response.statusCode).toBe(302);
     expect((await User.find({ username: 'jester-register' })).length).toBe(1);
   });
 
@@ -51,6 +50,5 @@ describe('Use registration code', () => {
       .send({ username: 'jester-register2' })
       .send({ password: 'jester' });
     expect(response.statusCode).toBe(200);
-    expect(response.text).toBe('Registration Used, please request a new link.');
   });
 });

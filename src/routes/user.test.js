@@ -101,7 +101,7 @@ describe('Get the Edit Device page', () => {
 
   test('The non-device owner should not be able to view the page', async () => {
     const response = await jesterAdminAgent.get(`/user/edit-device/${deviceId}`);
-    expect(response.statusCode).toBe(302);
+    expect(response.text).toBe("Error");
   });
 
   test('A non-authenticated user should not be able to view the page', async () => {
@@ -111,7 +111,7 @@ describe('Get the Edit Device page', () => {
 
   test('The admin user should be redirected', async () => {
     const response = await adminAgent.get(`/user/edit-device/${deviceId}`);
-    expect(response.statusCode).toBe(302);
+    expect(response.text).toBe("Error");
   });
 });
 
@@ -131,7 +131,7 @@ describe('Device Management', () => {
       .type('form')
       .send({ deviceName: 'jesterDevice' })
       .send({ initials: 'JD' });
-    expect(response.text).toBe('Add Successful');
+    expect(response.text).toMatch(/^[·\n]*<tr>/);
     const devices = await jester.getDevices();
     expect (devices.length).toBe(1);
     if (devices.length > 0) deviceId = devices[0]._id;
@@ -142,14 +142,14 @@ describe('Device Management', () => {
       .type('form')
       .send({ deviceName: 'jesterDevice2' })
       .send({ initials: 'DJ' });
-    expect(response.text).toBe('Edit Successful');
+    expect(response.text).toMatch(/^[·\n]*<tr>/);
     const devices = await jester.getDevices();
     expect (devices.length).toBe(1);
   });
 
   test('A user should be able to delete a device', async () => {
     const response = await jesterAgent.get(`/user/delete-device/${deviceId}`);
-    expect(response.statusCode).toBe(302);
+    expect(response.text.trim()).toBe("");
     const devices = await jester.getDevices();
     expect (devices.length).toBe(0);
   });
@@ -170,7 +170,7 @@ describe('Device Management', () => {
     const response = await jesterAgent.post('/user/update-friends')
       .type('form')
       .send({ friends: friend._id });
-    expect(response.text).toBe('Edit Successful');
+    expect(response.text).toMatch(/^[·\n]*<div class="form-check">/);
     jester = await jester.refresh();
     expect(jester.friends.length).toBe(1);
   });
@@ -179,16 +179,16 @@ describe('Device Management', () => {
     const response = await jesterAgent.post('/user/update-friends')
       .type('form')
       .send(`friends=${friend._id}&friends=${jesterAdmin._id}`);
-    expect(response.text).toBe('Edit Successful');
+    expect(response.text).toMatch(/^[·\n]*<div class="form-check">/);
     jester = await jester.refresh();
     expect(jester.friends.length).toBe(2);
   });
 
-  test('A user should be able to add multiple friends', async () => {
+  test('A user should be able to unfriend all friends', async () => {
     const response = await jesterAgent.post('/user/update-friends')
       .type('form')
       .send({ friends: null });
-    expect(response.text).toBe('Edit Successful');
+    expect(response.text).toMatch(/^[·\n]*<div class="form-check">/);
     jester = await jester.refresh();
     expect(jester.friends.length).toBe(0);
   });

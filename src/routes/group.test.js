@@ -42,7 +42,7 @@ describe('Create a group', () => {
     const response = await jesterAgent.post('/group/create')
       .type('form')
       .send({ groupName: 'Court Jesters' });
-    expect(response.text).toBe('Add Successful');
+    expect(response.text.trim()).toMatch(/^<tr>/);
     group = await Group.findOne({ name: 'Court Jesters', adminId: jester._id });
     expect(group).toBeTruthy();
   });
@@ -53,7 +53,7 @@ describe('Invite to group', () => {
     const response = await jesterAgent.post(`/group/${group._id}/invite`)
       .type('form')
       .send({ members: friend._id });
-    expect(response.text).toBe('Done');
+    expect(response.text).toMatch(/^<div class="modal-content">/);
     group = await Group.findOne({ name: 'Court Jesters', adminId: jester._id });
     expect(group.members.length).toBe(2);
   });

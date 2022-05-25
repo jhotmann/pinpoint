@@ -6,7 +6,6 @@ function verifyJwt(authCookie, jwtSecret) {
   if (!authCookie || !jwtSecret) return false;
   try {
     const decoded = jwt.verify(authCookie, jwtSecret);
-    console.log(`Returning ${JSON.stringify(decoded)}`);
     return decoded;
   } catch {
     return false;
@@ -27,12 +26,11 @@ module.exports.jwt = (req, res, next) => {
   if (!req.pageData) req.pageData = {};
   const user = verifyJwt(req?.cookies?.authorization, req?.envSettings?.jwtSecret);
   if (user) {
-    console.log('User token found');
     req.user = user;
     req.pageData.username = user.username;
     next();
   } else {
-    //res.redirect('/login');
+    res.redirect('/login');
   }
 };
 

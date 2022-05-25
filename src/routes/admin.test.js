@@ -63,7 +63,10 @@ describe('Registration links', () => {
   let guid;
   beforeAll(async () => {
     const response = await adminAgent.get('/admin/generate-registration');
-    guid = response.text;
+    const registrationLinksHtml = response.text;
+    const matches = [...registrationLinksHtml.matchAll(/\/register\/([\w]{40})/g)];
+    guid = matches[matches.length - 1][1];
+    console.log(guid);
   });
 
   test('The admin user should be able to create registration links', async () => {
@@ -75,7 +78,7 @@ describe('Registration links', () => {
   test('The admin user should be able to revoke registration links', async () => {
     const response = await adminAgent.get(`/admin/revoke-registration/${guid}`);
     const registration = await Registration.getByGuid(guid);
-    expect(response.statusCode).toBe(302);
+    expect(response.statusCode).toBe(200);
     expect(registration).toBeTruthy();
     expect(registration.used).toBe(true);
   });
@@ -84,21 +87,23 @@ describe('Registration links', () => {
 describe('User Management', () => {
   test('The admin user should be able to elevate users to administrator', async () => {
     const response = await adminAgent.post(`/admin/elevate-user/${jester._id}/true`);
-    expect(response.text).toBe('Done');
+    expect(response.statusCode).toBe(200);
+    expect(response.text).toMatch(/^<input/);
     jester = await User.get(jester._id);
     expect(jester.isAdmin).toBe(true);
   });
 
   test('The admin user should be able to de-elevate users', async () => {
     const response = await adminAgent.post(`/admin/elevate-user/${jester._id}/false`);
-    expect(response.text).toBe('Done');
+    expect(response.statusCode).toBe(200);
+    expect(response.text).toMatch(/^<input/);
     jester = await User.get(jester._id);
     expect(jester.isAdmin).toBe(false);
   });
 
   test('The admin user should be able to delete users', async () => {
     const response = await adminAgent.get(`/admin/delete-user/${jester._id}`);
-    expect(response.statusCode).toBe(302);
+    expect(response.statusCode).toBe(200);
     jester = await User.get(jester._id);
     expect(jester).toBe(null);
   });
