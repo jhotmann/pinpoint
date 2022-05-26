@@ -7,7 +7,9 @@ const { Base } = require('./Base');
   userId: "string",
   name: "string",
   initials: ["string"],
-  configLink: "string",
+  configLink: "string", <- old way
+  httpConfigLink: "string",
+  mqttConfigLink: "string",
   createdAt: Date,
   updatedAt: Date,
 }
@@ -24,23 +26,35 @@ class Device extends Base {
   static async create(name, initials, card, user) {
     const existing = await Device.findOne({ userId: user._id, name });
     if (existing) return null;
-    const configLink = getDeviceConfig(user, name, initials);
+    const mqttConfigLink = getMqttDeviceConfig(user, name, initials);
+    const httpConfigLink = getHttpDeviceConfig(user, name, initials);
     const device = new Device({
       userId: user._id,
       name,
       initials,
       card,
-      configLink,
+      httpConfigLink,
+      mqttConfigLink
     });
     await device.save();
     return device;
   }
 
   async update(name, initials, card, user) {
-    this.configLink = getDeviceConfig(user, name, initials);
+    this.mqttConfigLink = getMqttDeviceConfig(user, name, initials);
+    this.httpConfigLink = getHttpDeviceConfig(user, name, initials);
+    if (this.configLink) this.configLink = null;
     this.name = name;
     this.initials = initials;
     this.card = card;
+    const device = await this.save();
+    return device;
+  }
+
+  async updateConfigLinks(user) {
+    this.mqttConfigLink = getMqttDeviceConfig(user, this.name, this.initials);
+    this.httpConfigLink = getHttpDeviceConfig(user, this.name, this.initials);
+    if (this.configLink) this.configLink = null;
     const device = await this.save();
     return device;
   }
@@ -55,7 +69,27 @@ function cleanString(str) {
   return str.replace(/[^A-Za-z0-9]/g, '');
 }
 
-function getDeviceConfig(userData, deviceName, initials) {
+function getHttpDeviceConfig(userData, deviceName, initials) {
+  const httpConfig = {
+    _type: 'configuration',
+    autostartOnBoot: true,
+    deviceId: cleanString(deviceName),
+    locatorInterval: 300,
+    mode: 3,
+    monitoring: 1,
+    password: userData.passwordHash,
+    ping: 30,
+    pubExtendedData: true,
+    tid: initials,
+    tls: true,
+    url: `${process.env.HTTP_HOST}/pub`,
+    username: userData.username,
+  };
+  const configBuffer = Buffer.from(JSON.stringify(httpConfig), 'utf8');
+  return `owntracks:///config?inline=${configBuffer.toString('base64')}`;
+}
+
+function getMqttDeviceConfig(userData, deviceName, initials) {
   const mqttConfig = {
     _type: 'configuration',
     autostartOnBoot: true,
@@ -81,24 +115,7 @@ function getDeviceConfig(userData, deviceName, initials) {
     username: userData.username,
     ws: true,
   };
-
-  const httpConfig = {
-    _type: 'configuration',
-    autostartOnBoot: true,
-    deviceId: cleanString(deviceName),
-    locatorInterval: 300,
-    mode: 3,
-    monitoring: 1,
-    password: userData.passwordHash,
-    ping: 30,
-    pubExtendedData: true,
-    tid: initials,
-    tls: true,
-    url: `${process.env.HTTP_HOST}/pub`,
-    username: userData.username,
-  }
-  
-  const configBuffer = Buffer.from(JSON.stringify(process.env.MQTT_HOST ? mqttConfig : httpConfig), 'utf8');
+  const configBuffer = Buffer.from(JSON.stringify(mqttConfig), 'utf8');
   return `owntracks:///config?inline=${configBuffer.toString('base64')}`;
 }
 

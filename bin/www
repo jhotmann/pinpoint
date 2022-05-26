@@ -3,12 +3,26 @@
 require('dotenv').config();
 
 const aedes = require('aedes')();
+const async = require('async');
 const { CronJob } = require('cron');
 const http = require('http');
 const ws = require('websocket-stream');
 const app = require('../src/app');
 const { CardSeen } = require('../src/models/CardSeen');
+const { User } = require('../src/models/User');
+const { Device } = require('../src/models/Device');
 const mqtt = require('../src/mqtt');
+
+// Ensure device links are up to date with current settings (in case they changed)
+(async () => {
+  const allUsers = await User.getAll();
+  await async.each(allUsers, async (user) => {
+    const allDevices = await user.getDevices();
+    await async.each(allDevices, async (device) => {
+      await device.updateConfigLinks(user);
+    });
+  });
+})();
 
 // Get port from environment and store in Express.
 

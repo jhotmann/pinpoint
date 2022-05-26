@@ -27,7 +27,7 @@
       <li class="list-group-item">
         <div class="container">
           <div class="row justify-content-start align-items-center">
-            <div class="col">📲 Select the "OwnTracks Link" on a device with OwnTracks installed and you will be prompted to import the configuration.</div>
+            <div class="col">📲 Select one of the "OwnTracks Config" links on a device with OwnTracks installed and you will be prompted to import the configuration. MQTT will give you instant updates when a friend updates their location, whereas HTTP polls periodically for updates and uses slightly less battery.</div>
           </div>
         </div>
       </li>
@@ -53,6 +53,6 @@
         </div>
       </li>
     </ul>
-    <button class="btn btn-secondary" hx-get="/user/dismiss-help" hx-target="#user-help" hx-swap="outerHTML">Dismiss</button>
+    <button class="btn btn-secondary" hx-get="/user/dismiss-help" hx-target="#help">Dismiss</button>
   </div>
 </div>

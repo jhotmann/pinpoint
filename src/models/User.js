@@ -104,7 +104,7 @@ class User extends Base {
     let sharers = [];
 
     groups.forEach((group) => {
-      const members = group.members.map((member) => member.userId);
+      const members = group.members.filter((member) => member.accepted).map((member) => member.userId);
       sharers = sharers.concat(members);
     });
 
@@ -112,6 +112,15 @@ class User extends Base {
     sharers = sharers.concat(allUsers.filter((user) => user.friends.includes(this.username)).map((user) => user._id));
 
     return [...new Set(sharers)];
+  }
+
+  async getFriendsAndGroupies() {
+    const groups = await this.getGroups();
+    let friends = [...this.friends, this.username];
+
+    friends.concat(groups.flatMap((group) => group.members.filter((member) => member.accepted).map((member) => member.username)));
+
+    return [...new Set(friends)];
   }
 
   static async getByUsername(uname) {

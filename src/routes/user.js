@@ -31,6 +31,10 @@ router.get('/dismiss-help', userMw.one, async (req, res) => {
   res.send('');
 });
 
+router.get('/show-help', userMw.one, async (req, res) => {
+  res.render('user-help.html');
+});
+
 // !!!! devices !!!!
 
 router.get('/add-device', async (req, res) => {

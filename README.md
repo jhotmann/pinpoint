@@ -20,7 +20,7 @@ The recommended and supported installation method is using [Docker](https://www.
 | Environmental Variable | Description | Default | Example |
 | ----- | ----- | ----- | ----- |
 | HTTP_HOST | The protocol, hostname, and port (if necessary) for clients to connect to your server | | `http://192.168.0.2:8000` or `https://pinpoint.example.com` |
-| MQTT_HOST | The hostname for clients to connect to the MQTT server. If set, client configuration links will use MQTT instead of HTTP settings. | | `pinpointmqtt.example.com` |
+| MQTT_HOST | The hostname for clients to connect to the MQTT server. If not set, MQTT mode will be disabled. | | `pinpointmqtt.example.com` |
 | ADMIN_PASSWORD | The password for the admin account | `pinpointadmin` | `mysupersecretpassword` |
 | APPRISE_HOST | Either `cli` to use the [Apprise CLI](https://github.com/caronc/apprise) to send notifications or the protocol, hostname, and port of an [Apprise API](https://github.com/caronc/apprise-api) server | `cli` | `http://127.0.0.1:8000` |
 | APPRISE_EMAIL_URL | [Apprise URI](https://github.com/caronc/apprise/wiki) for sending emails to users. The user's email address will be appended to this to build the final URI. If not set, notifications will be disabled. |  | `mailgun://admin@example.com/my-mailgun-token/` |
