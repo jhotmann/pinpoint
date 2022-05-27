@@ -86,8 +86,8 @@ router.post('/edit-device/:deviceId', upload.single('avatar'), userMw.one, devMw
     await CardSeen.update({ deviceId: req.params.deviceId }, { $set: { seen: false } }); // Force friends to re-download card data (HTTP mode)
     if (req.envSettings.mqttEnabled) publishDeviceCards(req.User.username, req.User.friends, [ req.Device ]); // Send card (MQTT mode)
   }
-  const userDevices = await Device.getByUserId(req.User._id);
-  res.render('user-devices.html', { userDevices });
+  req.pageData.userDevices = await Device.getByUserId(req.User._id);
+  res.render('user-devices.html', req.pageData);
 });
 
 router.get('/delete-device/:deviceId', userMw.one, devMw.one, async (req, res) => {
