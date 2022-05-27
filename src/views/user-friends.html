@@ -1,0 +1,14 @@
+{% for user in allUsers %}
+{% if user.username != username %}
+<div class="form-check">
+  <input class="form-check-input user-friend" type="checkbox" value="{{ user.username }}"
+      id="{{ user.username }}-check" name="friends"
+      hx-post="/user/update-friends" hx-ext="json-enc"
+      hx-target="#friend-form" hx-include=".user-friend"
+      {% if userData.friends.includes(user.username) %} checked{% endif %}>
+  <label class="form-check-label" for="{{ user.username }}-check">
+    {{ user.username }}
+  </label>
+</div>
+{% endif %}
+{% endfor %}

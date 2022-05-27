@@ -1,0 +1,22 @@
+<div class="modal fade" id="create-group-modal" tabindex="-1" aria-labelledby="create-group-modal-label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="create-group-modal-label">Create Group</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="create-group-form" hx-post="/group/create" hx-ext="json-enc" hx-target="#groups-table-body">
+          <div class="form-floating">
+            <input type="text" class="form-control" id="groupName" name="groupName" placeholder="Group Name" required>
+            <label for="groupName">Group Name</label>
+            <div class="invalid-feedback">
+              Group name taken
+            </div>
+          </div>
+          <button class="btn btn-primary mt-2" type="submit" data-bs-dismiss="modal">Create</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

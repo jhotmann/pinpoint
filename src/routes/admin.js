@@ -5,17 +5,22 @@ const { Registration } = require('../models/Registration');
 const regMw = require('../middleware/registration');
 const { User } = require('../models/User');
 const userMw = require('../middleware/user');
+const { Group } = require('../models/Group');
+const { Device } = require('../models/Device');
 
 const router = express.Router();
 
 router.get('/', userMw.one, userMw.all, regMw.all, devMw.all, groupMw.all, async (req, res) => {
-  req.pageData.baseUrl = `${req.protocol}://${req.hostname}${req.hostname === 'localhost' ? ':8000' : ''}`;
+  res.header('HX-Push', '/admin');
+  req.pageData.baseUrl = getBaseUrl(req);
   res.render('admin.html', req.pageData);
 });
 
 router.get('/generate-registration', async (req, res) => {
-  const guid = await Registration.create();
-  res.send(guid);
+  await Registration.create();
+  req.pageData.baseUrl = getBaseUrl(req);
+  req.pageData.allRegistrations = await Registration.getUnused();
+  res.render('admin-registrations.html', req.pageData);
 });
 
 router.get('/revoke-registration/:registrationId', async (req, res) => {
@@ -23,20 +28,29 @@ router.get('/revoke-registration/:registrationId', async (req, res) => {
   if (registration) {
     await registration.use();
   }
-  res.redirect('/admin');
+  req.pageData.baseUrl = getBaseUrl(req);
+  req.pageData.allRegistrations = await Registration.getUnused();
+  res.render('admin-registrations.html', req.pageData);
 });
 
 router.post('/elevate-user/:userId/:admin', async (req, res) => {
   const user = await User.get(req.params.userId);
   await user.setIsAdmin(req.params.admin === 'true');
-  res.send('Done');
+  res.render('admin-user-input.html', { user });
 });
 
 router.get('/delete-user/:userId', async (req, res) => {
   const user = await User.get(req.params.userId);
   await user.remove();
   await user.deleteDevices();
-  res.redirect('/admin');
+  const allUsers = await User.getAll();
+  const allDevices = await Device.getAll();
+  const allGroups = await Group.getAll();
+  res.render('admin-users.html', { allUsers, allDevices, allGroups })
 });
 
 module.exports = router;
+
+function getBaseUrl(req) {
+  return `${req.protocol}://${req.hostname}${req.hostname === 'localhost' ? ':8000' : ''}`;
+}

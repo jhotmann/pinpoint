@@ -28,6 +28,13 @@
       </li>
       {% endif %}
     </ul>
+    {% if userData and userData.helpDismissed %}
+    <ul class="navbar-nav ms-auto">
+      <li class="nav-item">
+        <button class="btn btn-outline-secondary" hx-get="/user/show-help" hx-target="#help">Help</button>
+      </li>
+    </ul>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

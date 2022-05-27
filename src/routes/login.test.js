@@ -25,7 +25,7 @@ describe('Login', () => {
       .type('form')
       .send({ username: 'admin' })
       .send({ password: process.env.ADMIN_PASSWORD });
-    expect(response.text).toBe('Login Successful');
+    expect(response.statusCode).toBe(302);
   });
 
   test('An incorrect admin password shouldn\'t work', async () => {
@@ -33,7 +33,7 @@ describe('Login', () => {
       .type('form')
       .send({ username: 'admin' })
       .send({ password: 'asdfjhaskjdhfakljsdflkhjsdlafhsdlj' });
-    expect(response.text).toBe('Invalid Password');
+    expect(response.statusCode).toBe(200);
   });
 
   test('The test user should be able to login', async () => {
@@ -41,7 +41,7 @@ describe('Login', () => {
       .type('form')
       .send({ username: 'jester-login' })
       .send({ password: 'jester' });
-    expect(response.text).toBe('Login Successful');
+    expect(response.statusCode).toBe(302);
   });
 
   test('An incorrect test user password shouldn\'t work', async () => {
@@ -49,7 +49,7 @@ describe('Login', () => {
       .type('form')
       .send({ username: 'jester-login' })
       .send({ password: '1234567890' });
-    expect(response.text).toBe('Invalid Password');
+    expect(response.statusCode).toBe(200);
   });
 
   test('A user without an account shouldn\'t work', async () => {
@@ -57,6 +57,6 @@ describe('Login', () => {
       .type('form')
       .send({ username: 'jester2' })
       .send({ password: '1234567890' });
-    expect(response.text).toBe('Invalid Username');
+    expect(response.statusCode).toBe(200);
   });
 });

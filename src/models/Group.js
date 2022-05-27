@@ -36,6 +36,14 @@ class Group extends Base {
     return group;
   }
 
+  static async getWithMemberNames(_id) {
+    const group = await Group.findOne({ _id });
+    if (group) {
+      group.memberNames = group.members.map((member) => member.username);
+    }
+    return group;
+  }
+
   async invite(user) {
     this.members.push({ userId: user._id, username: user.username, accepted: false });
     const group = await this.save();

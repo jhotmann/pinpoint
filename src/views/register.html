@@ -4,7 +4,8 @@
 
     
 <main style="width: 100%; max-width: 600px; padding: 15px; margin: auto;">
-  <form id="registration-form">
+  <form id="registration-form" onsubmit="return validateForm();"
+      hx-post="/register/{{ registrationId }}" hx-ext="json-enc" hx-target="body">
     <h1 class="h3 mb-3 fw-normal">Pinpoint Registration</h1>
 
     <div class="form-floating">
@@ -16,17 +17,21 @@
       <label for="password">Password</label>
     </div>
     <div class="form-floating">
-      <input type="password" class="form-control" id="password2" name="password2" placeholder="Password" required>
+      <input type="password" class="form-control" id="password2" name="password2" placeholder="Password" oninput="checkPasswordsMatch(this)" required>
       <label for="password2">Confirm Password</label>
       <div class="invalid-feedback">
         Passwords do not match
       </div>
     </div>
 
-    <button class="w-100 btn btn-lg btn-primary" type="submit">Register</button>
+    <button class="w-100 btn btn-lg btn-primary mt-3" type="submit">Register</button>
   </form>
 </main>
 
 {% endblock %}
 
-{% block scripts %}<script src="/javascripts/register.js"></script>{% endblock %}
+{% block scripts %}
+<script src="/javascripts/htmx.min.js"></script>
+<script src="/javascripts/json-enc.js"></script>
+<script src="/javascripts/register.js"></script>
+{% endblock %}

@@ -11,6 +11,7 @@ const { Location } = require('./Location');
   username: "string",
   passwordHash: "string",
   friends: ["string"],
+  notificationTarget: "string",
   createdAt: Date,
   updatedAt: Date,
 }
@@ -63,6 +64,12 @@ class User extends Base {
     return user;
   }
 
+  async setNotificationTarget(target) {
+    this.notificationTarget = target;
+    const user = await this.save();
+    return user;
+  }
+
   async getDevices() {
     const devices = await Device.getByUserId(this._id);
     return devices;
@@ -83,12 +90,21 @@ class User extends Base {
     return groups;
   }
 
+  async getAcceptedGroups() {
+    const groups = await this.getGroups();
+    return groups.map((group) => group.toPOJO())
+      .map((group) => {
+        group.accepted = group.members.find((member) => member.userId === this._id).accepted;
+        return group;
+      });
+  }
+
   async getUsersSharingWith() {
     const groups = await this.getGroups();
     let sharers = [];
 
     groups.forEach((group) => {
-      const members = group.members.map((member) => member.userId);
+      const members = group.members.filter((member) => member.accepted).map((member) => member.userId);
       sharers = sharers.concat(members);
     });
 
@@ -96,6 +112,15 @@ class User extends Base {
     sharers = sharers.concat(allUsers.filter((user) => user.friends.includes(this.username)).map((user) => user._id));
 
     return [...new Set(sharers)];
+  }
+
+  async getFriendsAndGroupies() {
+    const groups = await this.getGroups();
+    let friends = [...this.friends, this.username];
+
+    friends.concat(groups.flatMap((group) => group.members.filter((member) => member.accepted).map((member) => member.username)));
+
+    return [...new Set(friends)];
   }
 
   static async getByUsername(uname) {
