@@ -4,9 +4,9 @@
   <th scope="row">{{ device.name }}</th>
   {% if device.httpConfigLink %}
   <th scope="row">
-    <a class="btn btn-info" href="{{ device.httpConfigLink }}" role="button">OwnTracks HTTP Config</a>
+    <a class="btn btn-info" href="{{ device.httpConfigLink }}" role="button">HTTP</a>
     {% if settings.mqttEnabled and device.mqttConfigLink %}
-    <a class="btn btn-info" href="{{ device.mqttConfigLink }}" role="button">OwnTracks MQTT Config</a>
+    <a class="btn btn-info ms-1" href="{{ device.mqttConfigLink }}" role="button">MQTT</a>
     {% endif %}
   </th>
   {% else %}
