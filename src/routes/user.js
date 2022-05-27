@@ -114,7 +114,7 @@ router.post('/update-friends', userMw.one, userMw.all, devMw.user, async (req, r
   if (req.envSettings.notificationsEnabled) {
     await async.eachSeries(addedFriends, async (friend) => {
       const friendUser = await User.getByUsername(friend);
-      await apprise.send(`Pinpoint - ${req.User.username} added you as a friend`, `You will now see ${req.User.username}'s location, but they will only see yours if you add them as a friend`, friendUser?.notificationTarget);
+      await apprise.send(`Pinpoint - ${req.User.username} added you as a friend`, `You will now see ${req.User.username}'s location, but they will only see yours if you add them as a friend. Manage your friends here: ${req.protocol}://${req.get('host')}/user`, friendUser?.notificationTarget);
     });
   }
   req.pageData.userData = await req.User.setFriends(friends);

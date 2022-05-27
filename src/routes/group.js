@@ -48,7 +48,7 @@ router.get('/accept/:groupId', userMw.one, groupMw.one, async (req, res) => {
   await req.Group.accept(req.User._id);
   req.pageData.userGroups = await req.User.getAcceptedGroups();
   const groupAdmin = await User.get(req.Group.adminId);
-  await apprise.send('Pinpoint - group invite accepted', `${req.User.username} accepted the invite to the ${req.Group.name} group`, groupAdmin.notificationTarget);
+  await apprise.send('Pinpoint - group invite accepted', `${req.User.username} accepted the invite to the ${req.Group.name} group. Manage your group here: ${req.protocol}://${req.get('host')}/user`, groupAdmin.notificationTarget);
   res.render('user-groups.html', req.pageData);
 });
 
