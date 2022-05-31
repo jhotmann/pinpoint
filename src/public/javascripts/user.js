@@ -17,4 +17,14 @@ $(() => {
       $('#password2').addClass('is-invalid');
     }
   });
+
+  document.body.addEventListener('invalidInitials', () => {
+    $('#initials-feedback').text('Initials taken');
+    $('#initials').addClass('is-invalid');
+  });
+
+  const addEditModal = new bootstrap.Modal(document.getElementById('add-edit-device-modal'));
+  document.body.addEventListener('deviceSave', () => {
+    addEditModal.hide();
+  });
 });

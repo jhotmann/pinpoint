@@ -17,8 +17,8 @@
       </div>
       <div class="form-floating mt-3">
         <input type="text" class="form-control" id="initials" name="initials" placeholder="AA" pattern="[A-Z]{2}" value="{{ deviceData.initials }}" required>
-        <label for="initials">Initials</label>
-        <div class="invalid-feedback">
+        <label for="initials">Initials (two uppercase letters)</label>
+        <div id="initials-feedback" class="invalid-feedback">
           Initials must be two uppercase letters
         </div>
       </div>
@@ -40,11 +40,10 @@
       <div class="container pt-3">
         <div class="row justify-items-start">
           <div class="col-3">
-            <button id="device-save" class="btn btn-primary" type="submit" data-bs-dismiss="modal">Save</button>
+            <button id="device-save" class="btn btn-primary" type="submit">Save</button>
           </div>
           {% if deviceData %}
           <div class="col-2">
-            <!--<a id="delete-button" class="btn btn-danger" href="#" role="button" data-bs-dismiss="modal">Delete</a>-->
             <button id="delete-button" class="btn btn-danger" role="button" data-bs-dismiss="modal"
                 hx-get="/user/delete-device/{{ deviceData._id }}" hx-target="#devices-table-body">Delete</button>
           </div>

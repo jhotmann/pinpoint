@@ -53,13 +53,17 @@ router.post('/add-device', upload.single('avatar'), userMw.one, async (req, res)
     fs.unlink(req.file.path, () => { console.log('Temp file deleted') });
   }
   const existingInitials = await Device.findOne({ initials: req.body.initials });
-  if (existingInitials) return res.send('Initials Invalid');
+  if (existingInitials) {
+    res.header('HX-Trigger', 'invalidInitials');
+    return res.status(400).send('Initials Invalid');
+  }
   const device = await Device.create(req.body.deviceName, req.body.initials, card, req.User);
   if (device) {
     if (req.envSettings.mqttEnabled) publishDeviceCards(req.User.username, req.User.friends, [ device ]);
   }
-  const userDevices = await Device.getByUserId(req.User._id);
-  res.render('user-devices.html', { userDevices });
+  req.pageData.userDevices = await Device.getByUserId(req.User._id);
+  res.header('HX-Trigger', 'deviceSave');
+  res.render('user-devices.html', req.pageData);
 });
 
 router.get('/edit-device/:deviceId', userMw.one, devMw.one, async (req, res) => {
@@ -82,11 +86,17 @@ router.post('/edit-device/:deviceId', upload.single('avatar'), userMw.one, devMw
     fs.unlink(req.file.path, () => { console.log('Temp file deleted') });
   }
   if (req.Device && req.Device.userId === req.User._id) {
+    const existingInitials = await Device.findOne({ initials: req.body.initials });
+    if (existingInitials && existingInitials._id !== req.Device._id) {
+      res.header('HX-Trigger', 'invalidInitials');
+      return res.status(400).send('Initials Invalid');
+    }
     req.Device = await req.Device.update(req.body.deviceName, req.body.initials, card, req.User);
     await CardSeen.update({ deviceId: req.params.deviceId }, { $set: { seen: false } }); // Force friends to re-download card data (HTTP mode)
     if (req.envSettings.mqttEnabled) publishDeviceCards(req.User.username, req.User.friends, [ req.Device ]); // Send card (MQTT mode)
   }
   req.pageData.userDevices = await Device.getByUserId(req.User._id);
+  res.header('HX-Trigger', 'deviceSave');
   res.render('user-devices.html', req.pageData);
 });
 
@@ -96,8 +106,8 @@ router.get('/delete-device/:deviceId', userMw.one, devMw.one, async (req, res) =
     await req.Device.remove();
     await CardSeen.remove({ deviceId: req.params.deviceId }, { multi: true });
   }
-  const userDevices = await Device.getByUserId(req.User._id);
-  res.render('user-devices.html', { userDevices });
+  req.pageData.userDevices = await Device.getByUserId(req.User._id);
+  res.render('user-devices.html', req.pageData);
 });
 
 // !!!! friends !!!!
