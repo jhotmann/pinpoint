@@ -30,14 +30,16 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/styles/css', express.static(path.join(__dirname, '..', 'node_modules', 'bootstrap', 'dist', 'css')));
 app.use('/styles/js', express.static(path.join(__dirname, '..', 'node_modules', 'bootstrap', 'dist', 'js')));
+app.use(settings.envSettings);
 
-app.use('/', settings.envSettings, auth.isLoggedIn, require('./routes/index'));
+app.use('/', auth.isLoggedIn, require('./routes/index'));
 app.use('/login', require('./routes/login'));
-app.use('/logout', settings.envSettings, auth.jwt, require('./routes/logout'));
-app.use('/admin', settings.envSettings, auth.jwt, auth.isAdmin, require('./routes/admin'));
-app.use('/user', settings.envSettings, auth.jwt, require('./routes/user'));
-app.use('/group', settings.envSettings, auth.jwt, require('./routes/group'));
+app.use('/logout', auth.jwt, require('./routes/logout'));
+app.use('/admin', auth.jwt, auth.isAdmin, require('./routes/admin'));
+app.use('/user', auth.jwt, require('./routes/user'));
+app.use('/group', auth.jwt, require('./routes/group'));
 app.use('/register', require('./routes/register'));
+app.use('/map', require('./routes/map'));
 app.use('/pub', auth.basic, require('./routes/pub'));
 
 module.exports = app;

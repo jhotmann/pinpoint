@@ -30,7 +30,7 @@ module.exports.jwt = (req, res, next) => {
     req.pageData.username = user.username;
     next();
   } else {
-    res.redirect('/login');
+    res.redirect(`/login?source=${encodeURIComponent(req.originalUrl)}`);
   }
 };
 

@@ -1,0 +1,16 @@
+{% extends "navbar.html" %}
+
+{% block containersettings %}-fluid{% endblock %}
+
+{% block body %}
+    
+<main class="w-100" style="height: 100vh; padding-bottom: 56px;">
+  <div class="w-100 h-100" id="map"></div>
+</main>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="/javascripts/leaflet.js"></script>
+<script src="/javascripts/map.js"></script>
+{% endblock %}

@@ -8,7 +8,7 @@
     <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
 
     <div class="form-floating">
-      <input type="text" class="form-control{% if invalidUsername %} is-invalid{% endif %}" id="username" name="username" placeholder="username" required>
+      <input type="text" class="form-control{% if invalidUsername %} is-invalid{% endif %}" id="username" name="username" placeholder="username"{% if username %} value="{{username}}"{% endif %} required>
       <label for="username">Username</label>
       <div class="invalid-feedback">
         Username does not exist
@@ -22,7 +22,10 @@
       </div>
     </div>
 
-    <button class="btn btn-lg btn-primary mt-3" type="submit">Sign in</button>
+    <button class="btn btn-lg btn-primary mt-3" type="submit">
+      <span class="spinner-border spinner-border-sm htmx-indicator" role="status" aria-hidden="true"></span>
+      <span class="me-3">Sign in</span>
+    </button>
   </form>
 </main>
 

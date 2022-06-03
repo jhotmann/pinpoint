@@ -10,7 +10,7 @@
     <ul class="navbar-nav me-auto mb-2 mb-lg-0 justify-content-end">
       {% if username %}
       <li class="nav-item">
-        <a class="nav-link" href="/user">{{ username }}</a>
+        <a class="nav-link" href="/user">User Settings</a>
       </li>
       {% else %}
       <li class="nav-item">
@@ -22,19 +22,22 @@
         <a class="nav-link" href="/admin">Admin</a>
       </li>
       {% endif %}
+      <li class="nav-item">
+        <a class="nav-link" href="/map">Map</a>
+      </li>
+    </ul>
+    <ul class="navbar-nav ms-auto">
+      {% if userData and userData.helpDismissed and showUserHelp %}
+      <li class="nav-item">
+        <button class="btn btn-outline-secondary" hx-get="/user/show-help" hx-target="#help">Help</button>
+      </li>
+      {% endif %}
       {% if username %}
       <li class="nav-item">
         <a class="nav-link" href="/logout">Logout</a>
       </li>
       {% endif %}
     </ul>
-    {% if userData and userData.helpDismissed %}
-    <ul class="navbar-nav ms-auto">
-      <li class="nav-item">
-        <button class="btn btn-outline-secondary" hx-get="/user/show-help" hx-target="#help">Help</button>
-      </li>
-    </ul>
-    {% endif %}
   </div>
 </div>
 {% endblock %}

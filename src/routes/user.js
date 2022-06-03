@@ -14,7 +14,12 @@ const userMw = require('../middleware/user');
 const { User } = require('../models/User');
 
 const router = express.Router();
-const upload = multer({ dest: 'data/uploads/' })
+const upload = multer({ dest: 'data/uploads/' });
+
+router.use((req, _, next) => {
+  req.pageData.showUserHelp = true;
+  next();
+});
 
 /* GET user listing. */
 router.get('/', userMw.one, devMw.user, userMw.all, groupMw.user, async (req, res) => {

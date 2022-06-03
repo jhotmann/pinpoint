@@ -8,29 +8,19 @@
     <meta http-equiv='cache-control' content='no-cache'>
     <meta http-equiv='expires' content='0'>
     <meta http-equiv='pragma' content='no-cache'>
-    <title>Pinpoint Server</title>
-
+    <title>{% block title %}Pinpoint Server{% endblock %}</title>
     <!-- Bootstrap -->
-    <link rel="stylesheet" href="/styles/css/bootstrap.css">
-
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
+    <link rel="stylesheet" href="/styles/css/bootstrap.min.css">
   </head>
   <body>
     <nav class="navbar navbar-dark bg-dark navbar-fixed-top navbar-expand-lg">{% block navbar %}{% endblock %}</nav>
-
-    <div class="container pt-3">
+    <div class="container{% block containersettings %} pt-3{% endblock %}">
       {% block body %}You need to extend base.html or navbar.html!{% endblock %}
     </div>
-
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ" crossorigin="anonymous"></script>
+    <script src="/javascripts/jquery-1.12.4.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="/styles/js/bootstrap.js"></script>
+    <script src="/styles/js/bootstrap.min.js"></script>
     {% block scripts %}{% endblock %}
   </body>
 </html>

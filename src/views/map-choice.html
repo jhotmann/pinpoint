@@ -1,0 +1,36 @@
+{% extends "navbar.html" %}
+
+{% block body %}
+
+    
+<main>
+  <div class="jumbotron">
+    <h2>Pinpoint Map</h2>
+    <p>If you are a user, please sign in to see your personalized map.</p>
+    <p>
+      <a class="btn btn-lg btn-primary" href="/login?source=%2Fmap" role="button">Sign in</a>
+    </p>
+  </div>
+
+  <form id="share-form" hx-post="/map/share" hx-ext="json-enc" hx-target="body">
+    <h2 class="h3 mb-3 fw-normal">Input Share Code</h2>
+    <p>If you are not a user but have a share code, please input it below.</p>
+
+    <div class="form-floating">
+      <input type="text" style="max-width: 330px;" class="form-control{% if invalidShareCode %} is-invalid{% endif %}" id="shareCode" name="shareCode" placeholder="Share Code" required>
+      <label for="shareCode">Share Code</label>
+      <div class="invalid-feedback">
+        Invalid or expired share code
+      </div>
+    </div>
+
+    <button class="btn btn-lg btn-primary mt-3" type="submit">View</button>
+  </form>
+</main>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="javascripts/htmx.min.js"></script>
+<script src="javascripts/json-enc.js"></script>
+{% endblock %}
