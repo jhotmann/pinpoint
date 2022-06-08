@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const express = require('express');
 const fs = require('fs');
 const multer = require('multer');
+const path = require('path');
 const sharp = require('sharp');
 const { CardSeen } = require('../models/CardSeen');
 const devMw = require('../middleware/device');
@@ -99,6 +100,7 @@ router.post('/edit-device/:deviceId', upload.single('avatar'), userMw.one, devMw
     req.Device = await req.Device.update(req.body.deviceName, req.body.initials, card, req.User);
     await CardSeen.update({ deviceId: req.params.deviceId }, { $set: { seen: false } }); // Force friends to re-download card data (HTTP mode)
     if (req.envSettings.mqttEnabled) publishDeviceCards(req.User.username, req.User.friends, [ req.Device ]); // Send card (MQTT mode)
+    fs.unlink(path.join(__dirname, '..', '..', 'data', 'image-cache', `${req.params.deviceId}.png`), () => {}); // Clean avatar cache for device
   }
   req.pageData.userDevices = await Device.getByUserId(req.User._id);
   res.header('HX-Trigger', 'deviceSave');
@@ -110,6 +112,7 @@ router.get('/delete-device/:deviceId', userMw.one, devMw.one, async (req, res) =
     if (req.envSettings.mqttEnabled) clearLocations(req.User.username, req.User.friends, [ req.Device ]);
     await req.Device.remove();
     await CardSeen.remove({ deviceId: req.params.deviceId }, { multi: true });
+    await Location.remove({ deviceId: req.params.deviceId }, { multi: true });
   }
   req.pageData.userDevices = await Device.getByUserId(req.User._id);
   res.render('user-devices.html', req.pageData);

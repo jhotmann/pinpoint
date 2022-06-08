@@ -7,6 +7,7 @@ const { Base } = require('./Base');
   userId: "string",
   name: "string",
   initials: ["string"],
+  card: { _type: "card", name: "string - username", tid: "string - initials", face: "string - base64 image data" }
   configLink: "string", <- old way
   httpConfigLink: "string",
   mqttConfigLink: "string",
