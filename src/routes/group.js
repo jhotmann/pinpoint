@@ -2,9 +2,8 @@ const apprise = require('../apprise');
 const async = require('async');
 const express = require('express');
 const groupMw = require('../middleware/group');
-const { Group } = require('../models/Group');
 const userMw = require('../middleware/user');
-const { User } = require('../models/User');
+const { User, Group } = require('../db');
 
 const router = express.Router();
 

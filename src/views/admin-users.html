@@ -1,9 +1,9 @@
 {% for user in allUsers %}
 <tr>
   <th scope="row">{{ user.username }}</th>
-  <td>{{ allDevices | arrayFilter('userId', user._id) | length }}</td>
+  <td>{{ user.devices | length }}</td>
   <td>{{ user.friends.length }}</td>
-  <td>{{ allGroups | arrayFilterPropIncludes('members', 'userId', user._id) | length }}</td>
+  <td>{{ user.groups.length }}</td>
   <td>
     <div class="form-check form-switch">
       {% include "admin-user-input.html" %}

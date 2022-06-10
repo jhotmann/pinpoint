@@ -1,9 +1,6 @@
 const async = require('async');
 const bcrypt = require('bcrypt');
-const { User } = require('./models/User');
-const { Device } = require('./models/Device');
-const { CardSeen } = require('./models/CardSeen');
-const { Location } = require('./models/Location');
+const { User, Device, CardSeen, Location } = require('./db');
 
 let aedes;
 const clientMap = {};

@@ -1,4 +1,5 @@
-const { Group } = require('../models/Group');
+const async = require('async');
+const { Group } = require('../db');
 
 // Depends upon req.params.groupId
 module.exports.one = async (req, res, next) => {
@@ -12,23 +13,28 @@ module.exports.one = async (req, res, next) => {
 
 module.exports.all = async (req, res, next) => {
   if (!req.pageData) req.pageData = {};
-  req.allGroups = await Group.getAll();
+  req.allGroups = await Group.findAll({ include: ['members'] });
   if (req.allGroups) {
-    req.pageData.allGroups = await req.allGroups.map((group) => group.toPOJO());
+    req.pageData.allGroups = await async.map(req.allGroups, async (group) => {
+      const data = group.toJSON();
+      data.members = group.members.map((m) => m.toJSON());
+      return data;
+    });
   }
   next();
 };
 
 // Depends upon user.one
 module.exports.user = async (req, res, next) => {
-  if (!req.User) {
-    req.pageData.userGroups = [];
-    next();
-  } else {
-    req.userGroups = await req.User.getGroups();
-    req.pageData.userGroups = await req.User.getAcceptedGroups();
-    next();
-  }
+  // if (!req.User) {
+  //   req.pageData.userGroups = [];
+  //   next();
+  // } else {
+  //   req.userGroups = req.User.groups;
+  //   req.pageData.userGroups = req.User.groups.toJSON();
+  //   next();
+  // }
+  next();
 };
 
 // Depends upon user.one and group.one

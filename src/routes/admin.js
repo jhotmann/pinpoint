@@ -1,18 +1,15 @@
+const async = require('async');
 const express = require('express');
-const devMw = require('../middleware/device');
-const groupMw = require('../middleware/group');
-const { Registration } = require('../models/Registration');
 const regMw = require('../middleware/registration');
-const { User } = require('../models/User');
 const userMw = require('../middleware/user');
-const { Group } = require('../models/Group');
-const { Device } = require('../models/Device');
+const { User, Group, Device, Registration } = require('../db');
 
 const router = express.Router();
 
-router.get('/', userMw.one, userMw.all, regMw.all, devMw.all, groupMw.all, async (req, res) => {
+router.get('/', userMw.one, userMw.all, regMw.all, async (req, res) => {
   res.header('HX-Push', '/admin');
   req.pageData.baseUrl = getBaseUrl(req);
+  console.dir(req.pageData.allUsers);
   res.render('admin.html', req.pageData);
 });
 
@@ -24,7 +21,7 @@ router.get('/generate-registration', async (req, res) => {
 });
 
 router.get('/revoke-registration/:registrationId', async (req, res) => {
-  const registration = await Registration.getByGuid(req.params.registrationId);
+  const registration = await Registration.getByUuid(req.params.registrationId);
   if (registration) {
     await registration.use();
   }
@@ -34,19 +31,17 @@ router.get('/revoke-registration/:registrationId', async (req, res) => {
 });
 
 router.post('/elevate-user/:userId/:admin', async (req, res) => {
-  const user = await User.get(req.params.userId);
-  await user.setIsAdmin(req.params.admin === 'true');
+  const user = await User.getByUuid(req.params.userId);
+  user.isAdmin = (req.params.admin === 'true');
+  await user.save();
   res.render('admin-user-input.html', { user });
 });
 
 router.get('/delete-user/:userId', async (req, res) => {
-  const user = await User.get(req.params.userId);
-  await user.remove();
-  await user.deleteDevices();
-  const allUsers = await User.getAll();
-  const allDevices = await Device.getAll();
-  const allGroups = await Group.getAll();
-  res.render('admin-users.html', { allUsers, allDevices, allGroups })
+  const user = await User.getByUuid(req.params.userId);
+  await user.delete();
+  req.pageData.allUsers = await userMw.getAllUsersData();
+  res.render('admin-users.html', req.pageData);
 });
 
 module.exports = router;

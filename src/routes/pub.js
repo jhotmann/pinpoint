@@ -2,9 +2,7 @@ const async = require('async');
 const express = require('express');
 const userMw = require('../middleware/user');
 const mqtt = require('../mqtt');
-const { Device } = require('../models/Device');
-const { CardSeen } = require('../models/CardSeen');
-const { Location } = require('../models/Location');
+const { Device, CardSeen, Location } = require('../db');
 
 const router = express.Router();
 

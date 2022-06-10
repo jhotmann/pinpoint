@@ -7,9 +7,7 @@ const auth = require('../middleware/auth');
 const devMw = require('../middleware/device');
 const groupMw = require('../middleware/group');
 const userMw = require('../middleware/user');
-const { Device } = require('../models/Device');
-const { Location } = require('../models/Location');
-const { User } = require('../models/User');
+const { User, Device, Location } = require('../db');
 
 const router = express.Router();
 
@@ -104,17 +102,9 @@ router.get('/avatar/:deviceId', devMw.one, async (req, res) => {
   res.sendFile(avatarPath);
 });
 
-Location.addListener('update', (datastore, result, query, update, options) => {
-  // Find clients with device id of updated location
-  // Send back array of last locations of the devices the conneciton is listening to
-  console.log('datastore:');
-  console.dir(datastore);
-  console.log('result:');
-  console.dir(result);
-  console.log('query:');
-  console.dir(query);
-  console.log('update:');
-  console.dir(update);
+Location.addHook('afterCreate', (location, options) => {
+  console.dir(location);
+  console.dir(options);
 });
 
 function createClient(id, devices, res) {

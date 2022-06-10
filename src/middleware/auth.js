@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { User } = require('../models/User');
+const { User } = require('../db');
 
 function verifyJwt(authCookie, jwtSecret) {
   if (!authCookie || !jwtSecret) return false;

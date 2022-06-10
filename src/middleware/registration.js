@@ -1,4 +1,4 @@
-const { Registration } = require('../models/Registration');
+const { Registration } = require('../db');
 
 module.exports.all = async (req, res, next) => {
   if (!req.pageData) req.pageData = {};

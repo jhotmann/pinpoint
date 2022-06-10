@@ -6,13 +6,11 @@ const fs = require('fs');
 const multer = require('multer');
 const path = require('path');
 const sharp = require('sharp');
-const { CardSeen } = require('../models/CardSeen');
 const devMw = require('../middleware/device');
-const { Device } = require('../models/Device');
 const groupMw = require('../middleware/group');
 const mqtt = require('../mqtt');
 const userMw = require('../middleware/user');
-const { User } = require('../models/User');
+const { User, Device, CardSeen } = require('../db');
 
 const router = express.Router();
 const upload = multer({ dest: 'data/uploads/' });
@@ -23,17 +21,19 @@ router.use((req, _, next) => {
 });
 
 /* GET user listing. */
-router.get('/', userMw.one, devMw.user, userMw.all, groupMw.user, async (req, res) => {
+router.get('/', userMw.one, userMw.all, async (req, res) => {
   if (req.user.username === 'admin') {
     res.redirect('/admin');
   } else {
     res.header('HX-Push', '/user');
+    console.dir(req.pageData.allUsers);
     res.render('user.html', req.pageData);
   }
 });
 
 router.get('/dismiss-help', userMw.one, async (req, res) => {
-  await req.User.dismissHelp();
+  req.User.helpDismissed = true;
+  await req.User.save()
   res.send('');
 });
 

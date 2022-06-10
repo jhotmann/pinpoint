@@ -3,19 +3,19 @@
       <th scope="row">{{ group.name }}</th>
       <td>{{ group.members | join(', ', 'username') }}</td>
       <td>
-        {% if group.adminId === userData._id %}
+        {% if group.adminId === userData.id %}
         <button class="btn btn-secondary" role="button"
             data-bs-toggle="modal" data-bs-target="#edit-group-modal"
-            hx-get="/group/edit/{{ group._id }}" hx-target="#edit-group-dialog">Edit</button>
+            hx-get="/group/edit/{{ group.uuid }}" hx-target="#edit-group-dialog">Edit</button>
         {% else %}
         {% if group.accepted %}
         <button class="btn btn-danger" role="button"
-          hx-get="/group/leave/{{ group._id }}" hx-target="#groups-table-body">Leave</button>
+          hx-get="/group/leave/{{ group.uuid }}" hx-target="#groups-table-body">Leave</button>
         {% else %}
         <button class="btn btn-success" role="button"
-          hx-get="/group/accept/{{ group._id }}" hx-target="#groups-table-body">Accept</button>
+          hx-get="/group/accept/{{ group.uuid }}" hx-target="#groups-table-body">Accept</button>
         <button class="btn btn-danger" role="button"
-          hx-get="/group/leave/{{ group._id }}" hx-target="#groups-table-body">Decline</button>
+          hx-get="/group/leave/{{ group.uuid }}" hx-target="#groups-table-body">Decline</button>
         {% endif %}
         {% endif %}
       </td>

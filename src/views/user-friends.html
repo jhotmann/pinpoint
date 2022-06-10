@@ -5,7 +5,7 @@
       id="{{ user.username }}-check" name="friends"
       hx-post="/user/update-friends" hx-ext="json-enc"
       hx-target="#friend-form" hx-include=".user-friend"
-      {% if userData.friends.includes(user.username) %} checked{% endif %}>
+      {% if userData.friends and userData.friends.includes(user.username) %} checked{% endif %}>
   <label class="form-check-label" for="{{ user.username }}-check">
     {{ user.username }}
   </label>

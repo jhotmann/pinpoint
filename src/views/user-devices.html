@@ -1,17 +1,12 @@
-{% set urlRegExp = r/^owntracks:\/\/[^\/]/ %}
 {% for device in userDevices %}
 <tr>
   <th scope="row">{{ device.name }}</th>
-  {% if device.httpConfigLink %}
   <th scope="row">
-    <a class="btn btn-info" href="{{ device.httpConfigLink }}" role="button">HTTP</a>
-    {% if settings.mqttEnabled and device.mqttConfigLink %}
-    <a class="btn btn-info ms-1" href="{{ device.mqttConfigLink }}" role="button">MQTT</a>
+    <a class="btn btn-info" href="{{ device.httpConfig }}" role="button">HTTP</a>
+    {% if settings.mqttEnabled and device.mqttConfig %}
+    <a class="btn btn-info ms-1" href="{{ device.mqttConfig }}" role="button">MQTT</a>
     {% endif %}
   </th>
-  {% else %}
-  <th scope="row"><a class="btn btn-info" href="{{ device.configLink | replace(urlRegExp, 'owntracks:///c') }}" role="button">OwnTracks Link</a></th>
-  {% endif %}
   <td scope="row">
     <button class="btn btn-secondary" role="button" data-bs-toggle="modal" data-bs-target="#add-edit-device-modal"
         hx-get="/user/edit-device/{{ device._id }}" hx-target="#add-edit-device-dialog">Edit</button>
