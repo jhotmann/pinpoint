@@ -1,13 +1,30 @@
 const async = require('async');
 const { Group } = require('../db');
 
-// Depends upon req.params.groupId
-module.exports.one = async (req, res, next) => {
-  if (!req.pageData) req.pageData = {};
-  req.Group = await Group.getWithMemberNames(req.params.groupId);
-  if (req.Group) {
-    req.pageData.groupData = req.Group.toPOJO();
+module.exports.getGroupData = async (uuid) => {
+  try {
+    const group = await Group.getByUuid(uuid);
+    const groupData = group.toJSON();
+    const members = await group.getMembers();
+    groupData.members = members.map((member) => {
+      const data = member.toJSON();
+      data.accepted = member.GroupMembers.accepted;
+      return data;
+    });
+    groupData.memberNames = members.map((member) => member.username);
+    return { group, groupData };
+  } catch (e) {
+    console.error('ERROR getting group data:', e);
   }
+  return null;
+};
+
+// Depends upon req.params.groupId
+module.exports.one = async (req, _, next) => {
+  if (!req.pageData) req.pageData = {};
+  const data = await this.getGroupData(req.params.groupId);
+  req.pageData.groupData = data.groupData;
+  req.Group = data.group;
   next();
 };
 
@@ -21,19 +38,6 @@ module.exports.all = async (req, res, next) => {
       return data;
     });
   }
-  next();
-};
-
-// Depends upon user.one
-module.exports.user = async (req, res, next) => {
-  // if (!req.User) {
-  //   req.pageData.userGroups = [];
-  //   next();
-  // } else {
-  //   req.userGroups = req.User.groups;
-  //   req.pageData.userGroups = req.User.groups.toJSON();
-  //   next();
-  // }
   next();
 };
 

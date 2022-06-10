@@ -2,7 +2,7 @@ const path = require('path');
 const { Sequelize, DataTypes, Model } = require('sequelize');
 
 const dbPath = path.join(__dirname, '..', '..', 'data', 'pinpoint.sqlite');
-const sequelize = new Sequelize({ dialect: 'sqlite', storage: dbPath });
+const sequelize = new Sequelize({ dialect: 'sqlite', storage: dbPath, logging: false });
 
 // Models defined in other files
 const { User, dataStructure: userDS } = require('./user');
@@ -39,8 +39,9 @@ GroupMembers.init({
 User.belongsToMany(User, { through: Friend, foreignKey: 'userId', targetKey: 'id', as: 'friends' });
 User.belongsToMany(User, { through: Friend, foreignKey: 'friendId', targetKey: 'id', as: 'senders' });
 // Groups
-User.belongsToMany(Group, { through: { model: GroupMembers, scope: { accepted: true }}, as: 'groups', foreignKey: 'userId' });
-Group.belongsToMany(User, { through: GroupMembers, as: 'members', foreignKey: 'groupId' });
+//User.belongsToMany(Group, { through: { model: GroupMembers, scope: { accepted: true }}, as: 'groups', foreignKey: 'userId' });
+User.belongsToMany(Group, { through: { model: GroupMembers, attributes: ['accepted'] }, as: 'groups', foreignKey: 'userId' });
+Group.belongsToMany(User, { through: { model: GroupMembers, attributes: ['accepted'] }, as: 'members', foreignKey: 'groupId' });
 // User Devices
 User.hasMany(Device, { as: 'devices', foreignKey: 'userId' });
 Device.belongsTo(User, { foreignKey: 'userId' });

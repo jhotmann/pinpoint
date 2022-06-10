@@ -14,7 +14,11 @@ module.exports.getUserData = async (username) => {
     if (!user) return { user: null, userData: null, userGroups: [], userDevices: [] };
     const userData = user.toJSON();
     userData.friends = user.friends.map((f) => f.username);
-    const userGroups = user.groups.map((g) => g.toJSON());
+    const userGroups = user.groups.map((g) => {
+      const data = g.toJSON();
+      data.accepted = g.GroupMembers.accepted;
+      return data;
+    });
     const userDevices = await async.mapSeries(user.devices, async (d) => {
       const data = d.toJSON();
       data.card = await data.card;

@@ -26,7 +26,6 @@ router.get('/', userMw.one, userMw.all, async (req, res) => {
     res.redirect('/admin');
   } else {
     res.header('HX-Push', '/user');
-    console.dir(req.pageData.allUsers);
     res.render('user.html', req.pageData);
   }
 });
@@ -128,7 +127,7 @@ router.get('/delete-device/:deviceId', userMw.one, devMw.one, async (req, res) =
 
 // !!!! friends !!!!
 
-router.post('/update-friends', userMw.one, userMw.all, devMw.user, async (req, res) => {
+router.post('/update-friends', userMw.one, userMw.all, async (req, res) => {
   let friends = req.body.friends || [];
   if (typeof friends === 'string') friends = [friends];
   const addedFriends = friends.filter((friend) => !req.pageData.userData.friends.includes(friend));
@@ -143,7 +142,8 @@ router.post('/update-friends', userMw.one, userMw.all, devMw.user, async (req, r
       await apprise.send(`Pinpoint - ${req.User.username} added you as a friend`, `You will now see ${req.User.username}'s location, but they will only see yours if you add them as a friend. Manage your friends here: ${req.protocol}://${req.get('host')}/user`, friendUser?.notificationTarget);
     });
   }
-  req.pageData.userData = await req.User.setFriends(friends);
+  await req.User.setFriends(friends);
+  req.pageData.userData = (await userMw.getUserData(req.user.username)).userData;
   if (req.pageData.userData) {
     res.render('user-friends.html', req.pageData);
   } else {
@@ -155,7 +155,8 @@ router.post('/update-friends', userMw.one, userMw.all, devMw.user, async (req, r
 
 router.post('/set-notification', userMw.one, async (req, res) => {
   const input = req.body['notification-input'];
-  await req.User.setNotificationTarget(input);
+  req.User.notificationTarget = input;
+  await req.User.save();
   res.render('user-notification-button.html');
 });
 
@@ -174,22 +175,18 @@ router.post('/test-notification', userMw.one, async (req, res) => {
 router.post('/reset-password', userMw.one, async (req, res) => {
   const { password } = req.body;
   const hash = await bcrypt.hash(password, 15);
-  const updatedUser = await req.User.setPasswordHash(hash);
-  if (updatedUser) {
-    const devices = await req.User.getDevices();
-    await async.eachSeries(devices, async (device) => {
-      await device.update(device.name, device.initials, device.card, updatedUser);
-    });
+  req.User.passwordHash = hash;
+  try {
+    await req.User.save();
     res.send('Reset Successful');
-  } else {
-    res.send('Error');
+  } catch (e) {
+    console.error('ERROR updating user password:', e);
+    res.send('Error')
   }
 });
 
-router.get('/delete-user', userMw.one, devMw.user, groupMw.user, async (req, res) => {
-  await req.User.remove();
-  await req.User.deleteDevices();
-  await async.eachSeries(req.userGroups, async (group) => { await group.leave(req.User._id); });
+router.get('/delete-user', userMw.one, async (req, res) => {
+  await req.User.delete();
   if (req.envSettings.mqttEnabled) clearLocations(req.User.username, req.User.friends, req.userDevices);
   res.redirect('/logout');
 });

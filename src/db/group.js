@@ -2,15 +2,7 @@ const cryptoRandomString = require('crypto-random-string');
 const { DataTypes } = require('sequelize');
 const Base = require('./base');
 
-class Group extends Base {
-  static async getWithMemberNames(uuid) {
-    const group = await this.getByUuid(uuid);
-    if (group) {
-      group.memberNames = group.members.map((member) => member.username);
-    }
-    return group;
-  }
-}
+class Group extends Base {}
 
 const dataStructure = {
   // id

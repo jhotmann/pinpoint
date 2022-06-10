@@ -31,6 +31,16 @@ class User extends Base {
     // TODO how to handle groups?
     await this.destroy();
   }
+
+  async setFriends(friends) {
+    if (typeof friends === 'string') friends = [friendsArray];
+    await Friend.destroy({ where: { userId: this.id } } );
+    await async.each(friends, async (f) => {
+      console.log(`Adding ${f} as a friend`);
+      const friend = await User.getByUsername(f);
+      await Friend.create({ userId: this.id, friendId: friend.id });
+    });
+  }
 }
 
 const dataStructure = {

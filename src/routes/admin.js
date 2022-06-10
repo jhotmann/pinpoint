@@ -9,7 +9,6 @@ const router = express.Router();
 router.get('/', userMw.one, userMw.all, regMw.all, async (req, res) => {
   res.header('HX-Push', '/admin');
   req.pageData.baseUrl = getBaseUrl(req);
-  console.dir(req.pageData.allUsers);
   res.render('admin.html', req.pageData);
 });
 

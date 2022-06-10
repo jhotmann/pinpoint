@@ -20,12 +20,12 @@
         <tr>
           <th scope="row">{{ member.username }}</th>
           <th scope="row">{{ "Yes" if member.accepted else "No" }}</th>
-          {% if member.userId === userData._id %}
+          {% if member.id === userData.id %}
           <td scope="row"></td>
           {% else %}
           <td scope="row">
             <button class="btn btn-danger" role="button" hx-target="#edit-group-dialog"
-                hx-get="/group/remove-user/{{ groupData._id }}/{{ member.userId }}">Remove</button>
+                hx-get="/group/remove-user/{{ groupData.uuid }}/{{ member.uuid }}">Remove</button>
           </td>
           {% endif %}
         </tr>
@@ -33,12 +33,12 @@
       </tbody>
     </table>
     <h2 class="mt-3">Invite</h2>
-    <form id="invite-form" hx-post="/group/{{ groupData._id }}/invite" hx-ext="json-enc"
+    <form id="invite-form" hx-post="/group/{{ groupData.uuid }}/invite" hx-ext="json-enc"
         hx-target="#edit-group-dialog">
       {% for user in allUsers %}
       {% if not groupData.memberNames.includes(user.username) %}
       <div class="form-check">
-        <input class="form-check-input" type="checkbox" value="{{ user._id }}" id="{{ user.username }}-invite-check" name="members">
+        <input class="form-check-input" type="checkbox" value="{{ user.uuid }}" id="{{ user.username }}-invite-check" name="members">
         <label class="form-check-label" for="{{ user.username }}-invite-check">
           {{ user.username }}
         </label>
