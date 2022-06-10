@@ -32,7 +32,9 @@ const dataStructure = {
   expiration: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    defaultValue: Date.now() + ms('7d')
+    defaultValue: () => {
+      return Date.now() + ms('7d');
+    }
   },
   expired: {
     type: DataTypes.VIRTUAL,

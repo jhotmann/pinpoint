@@ -6,7 +6,7 @@ const saltRounds = 15;
 
 /* GET user listing. */
 router.get('/:registrationId', async (req, res) => {
-  const registration = await Registration.getByGuid(req.params.registrationId);
+  const registration = await Registration.getByUuid(req.params.registrationId);
   if (registrationValid(registration)) {
     res.render('register.html', { registrationId: req.params.registrationId });
   } else {
@@ -15,12 +15,13 @@ router.get('/:registrationId', async (req, res) => {
 });
 
 router.post('/:registrationId', async (req, res) => {
-  const registration = await Registration.getByGuid(req.params.registrationId);
+  const registration = await Registration.getByUuid(req.params.registrationId);
   if (registrationValid(registration)) {
     const { username, password } = req.body;
-    const user = await User.create(username, password);
+    const user = await User.createNew(username, password);
     if (user) {
-      await registration.use();
+      registration.used = true;
+      await registration.save();
       res.redirect('/login');
     } else {
       res.render('register.html', { registrationId: req.params.registrationId, error: true });

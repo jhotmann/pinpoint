@@ -9,7 +9,7 @@
   </th>
   <td scope="row">
     <button class="btn btn-secondary" role="button" data-bs-toggle="modal" data-bs-target="#add-edit-device-modal"
-        hx-get="/user/edit-device/{{ device._id }}" hx-target="#add-edit-device-dialog">Edit</button>
+        hx-get="/user/edit-device/{{ device.uuid }}" hx-target="#add-edit-device-dialog">Edit</button>
   </td>
 </tr>
 {% endfor %}

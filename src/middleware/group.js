@@ -39,7 +39,7 @@ module.exports.user = async (req, res, next) => {
 
 // Depends upon user.one and group.one
 module.exports.admin = async (req, res, next) => {
-  if (req?.Group?.adminId && req.Group.adminId === req.User._id) {
+  if (req?.Group?.adminId && req.Group.adminId === req.User.id) {
     next();
   } else {
     res.sendStatus(403);

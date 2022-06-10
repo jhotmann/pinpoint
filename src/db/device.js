@@ -1,9 +1,18 @@
 const cryptoRandomString = require('crypto-random-string');
 const { DataTypes } = require('sequelize');
 const Base = require('./base');
-const { User } = require('./user');
+const { Location } = require('./location');
+const { Share } = require('./share');
+const { CardStatus } = require('./cardStatus')
 
-class Device extends Base {}
+class Device extends Base {
+  async delete() {
+    await Location.destroy({ where: { deviceId: this.id } });
+    await Share.destroy({ where: { deviceId: this.id } });
+    await CardStatus.destroy({ where: { deviceId: this.id } });
+    await this.destroy();
+  }
+}
 
 const dataStructure = {
   // id
@@ -37,7 +46,7 @@ const dataStructure = {
   card: {
     type: DataTypes.VIRTUAL,
     async get() {
-      const userData = await User.findByPk(this.getDataValue('userId'));
+      const userData = await this.getUser();
       return {
         _type: 'card',
         name: userData.username,
@@ -50,7 +59,7 @@ const dataStructure = {
   httpConfig: {
     type: DataTypes.VIRTUAL,
     async get() {
-      const userData = await User.findByPk(this.getDataValue('userId'));
+      const userData = await this.getUser();
       const httpConfig = {
         _type: 'configuration',
         autostartOnBoot: true,
@@ -74,7 +83,7 @@ const dataStructure = {
   mqttConfig: {
     type: DataTypes.VIRTUAL,
     async get() {
-      const userData = await User.findByPk(this.getDataValue('userId'));
+      const userData = await this.getUser();
       const mqttConfig = {
         _type: 'configuration',
         autostartOnBoot: true,

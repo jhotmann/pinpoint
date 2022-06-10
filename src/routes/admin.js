@@ -23,7 +23,7 @@ router.get('/generate-registration', async (req, res) => {
 router.get('/revoke-registration/:registrationId', async (req, res) => {
   const registration = await Registration.getByUuid(req.params.registrationId);
   if (registration) {
-    await registration.use();
+    await registration.destroy();
   }
   req.pageData.baseUrl = getBaseUrl(req);
   req.pageData.allRegistrations = await Registration.getUnused();

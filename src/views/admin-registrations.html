@@ -1,8 +1,8 @@
 {% for registration in allRegistrations %}
-{% set url = baseUrl + "/register/" + registration.guid %}
+{% set url = baseUrl + "/register/" + registration.uuid %}
 <tr>
   <th scope="row">{{ url }}</th>
   <td><a class="btn btn-primary" onclick="copyLink('{{ url }}')" role="button">Copy</a></td>
-  <td><a class="btn btn-danger" hx-get="/admin/revoke-registration/{{ registration.guid }}" hx-target="#registration-table-body" role="button">Revoke</a></td>
+  <td><a class="btn btn-danger" hx-get="/admin/revoke-registration/{{ registration.uuid }}" hx-target="#registration-table-body" role="button">Revoke</a></td>
 </tr>
 {% endfor %}
