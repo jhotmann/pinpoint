@@ -187,7 +187,7 @@ router.post('/reset-password', userMw.one, async (req, res) => {
 
 router.get('/delete-user', userMw.one, async (req, res) => {
   await req.User.delete();
-  if (req.envSettings.mqttEnabled) clearLocations(req.User.username, req.User.friends, req.userDevices);
+  if (req.envSettings.mqttEnabled) clearLocations(req.User.username, req.User.friends, req.pageData.userDevices);
   res.redirect('/logout');
 });
 

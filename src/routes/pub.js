@@ -2,30 +2,34 @@ const async = require('async');
 const express = require('express');
 const userMw = require('../middleware/user');
 const mqtt = require('../mqtt');
-const { Device, CardSeen, Location } = require('../db');
+const { User, Device, CardSeen, Location, Friend } = require('../db');
 
 const router = express.Router();
 
 router.post('/', userMw.one, async (req, res) => {
-  if (typeof req.body === 'object' && req.body?._type === 'location') {
+  if (typeof req.body === 'object' && req.body?._type === 'ping') {
+    // TODO reply with sharer's locations
+    res.send('Got it');
+  } else if (typeof req.body === 'object' && req.body?._type === 'location') {
     const deviceName = deviceNameFromTopic(req.user.username, req.body.topic);
-    const userDevice = (await Device.getByUserId(req.User._id)).find((device) => device.name === deviceName);
+    const userDevice = req.pageData.userDevices.find((device) => device.name === deviceName);
     if (!userDevice) {
       console.log(`${req.user.username} posted a location update for an invalid device: ${deviceName}`);
       return;
     }
     console.log(`${req.user.username} posted a location update for device: ${deviceName}`);
-    await Location.create(req.body, req.User, userDevice._id);
+    await Location.create({ data: req.body, userId: req.User.id, deviceId: userDevice.id });
     const returnData = [];
     const returnUsernames = [];
 
     // Publish to friends MQTT topics
-    if (process.env.MQTT_HOST) {
-      const friends = await req.User.getFriendsAndGroupies();
-      friends.forEach((friend) => {
-        console.log(`Publishing location to ${friend}/${req.User.username}/${deviceName}: ${JSON.stringify(req.body)}`);
+    if (req.envSettings.mqttEnabled) {
+      const friends = await User.findAll({ include: { model: Friend, as: 'friends', where: { userId: req.User.id } } });
+      const groupies = req.User.groups.map((g) => g.members).flat();
+      friends.concat(groupies).forEach((friend) => {
+        console.log(`Publishing location to ${friend.username}/${req.User.username}/${deviceName}: ${JSON.stringify(req.body)}`);
         try {
-          mqtt.publish({ cmd: 'publish', topic: `${friend}/${req.User.username}/${deviceName}`, payload: JSON.stringify(req.body) }, (err) => { if (err) console.error(err); });
+          mqtt.publish({ cmd: 'publish', topic: `${friend.username}/${req.User.username}/${deviceName}`, payload: JSON.stringify(req.body) }, (err) => { if (err) console.error(err); });
         } catch (e) {
           console.log(e);
         }

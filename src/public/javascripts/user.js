@@ -25,6 +25,7 @@ $(() => {
 
   const addEditModal = new bootstrap.Modal(document.getElementById('add-edit-device-modal'));
   document.body.addEventListener('deviceSave', () => {
+    console.log('device saved');
     addEditModal.hide();
   });
 });

@@ -16,6 +16,7 @@ module.exports.getUserData = async (username) => {
     userData.friends = user.friends.map((f) => f.username);
     const userGroups = user.groups.map((g) => {
       const data = g.toJSON();
+      data.members = g.members.map((m) => m.toJSON());
       data.accepted = g.GroupMembers.accepted;
       return data;
     });
