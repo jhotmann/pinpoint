@@ -1,7 +1,7 @@
 const async = require('async');
 const bcrypt = require('bcrypt');
 const cryptoRandomString = require('crypto-random-string');
-const { DataTypes } = require('sequelize');
+const { DataTypes, Op } = require('sequelize');
 const Base = require('./base');
 const { Friend } = require('./friend');
 const { Device } = require('./device');
@@ -40,6 +40,43 @@ class User extends Base {
       const friend = await User.getByUsername(f);
       await Friend.create({ userId: this.id, friendId: friend.id });
     });
+  }
+
+  async getDevicesSharingWith() {
+    const userDevices = await this.getDevices();
+    const deviceIds = userDevices.map((d) => d.id);
+
+    const sharers = await Friend.findAll({ where: { friendId: this.id }, attributes: ['userId'] });
+    const sharerIds = sharers.map((s) => s.userId).flat();
+    const sharingUsers = await User.findAll({ where: { id: { [Op.in]: sharerIds } } });
+    await async.each(sharingUsers, async (sharer) => {
+      const devices = await sharer.getDevices();
+      devices.forEach((device) => {
+        if (!deviceIds.includes(device.id)) deviceIds.push(device.id);
+      });
+    });
+
+    const groups = await this.getGroups();
+    const groupieIds = [];
+    const groupies = [];
+    await async.each(groups, async (g) => {
+      const members = await g.getMembers();
+      members.forEach((member) => {
+        if (groupieIds.includes(member.id)) return;
+        if (member?.GroupMembers?.accepted) {
+          groupieIds.push(member.id);
+          groupies.push(member);
+        }
+      });
+    });
+    
+    await async.each(groupies, async (sharer) => {
+      const devices = await sharer.getDevices();
+      devices.forEach((device) => {
+        if (!deviceIds.includes(device.id)) deviceIds.push(device.id);
+      });
+    });
+    return deviceIds;
   }
 }
 

@@ -5,7 +5,6 @@ const name2avatar = require('name2avatar');
 const path = require('path');
 const auth = require('../middleware/auth');
 const devMw = require('../middleware/device');
-const groupMw = require('../middleware/group');
 const userMw = require('../middleware/user');
 const { User, Device, Location } = require('../db');
 
@@ -15,7 +14,7 @@ const router = express.Router();
 [
   {
     id: user id or share code,
-    friends: [list, of, friend, ids]
+    devices: [list, of, device, ids]
     res,
   }
 ]
@@ -36,7 +35,7 @@ router.get('/', auth.isLoggedIn, async (req, res) => {
   }
 });
 
-router.get('/sse', auth.jwt, userMw.one, userMw.all, devMw.all, groupMw.all, async (req, res) => {
+router.get('/sse', auth.jwt, userMw.one, userMw.all, async (req, res) => {
   console.log(`${req.User.username} opened a SSE connection to /map/sse`);
   const headers = {
     'Content-Type': 'text/event-stream',
@@ -48,9 +47,9 @@ router.get('/sse', auth.jwt, userMw.one, userMw.all, devMw.all, groupMw.all, asy
   res.flushHeaders();
   res.write('retry: 60000\n\n');
 
-  const friends = await req.User.getUsersSharingWith();
-  const client = createClient(Date.now(), friends, res);
-  await sendCurrentLocations(friends, res);
+  const devices = await req.User.getDevicesSharingWith();
+  const client = createClient(Date.now(), devices, res);
+  await sendCurrentLocations(devices, res);
 
   res.on("close", () => {
     console.log(`Closing client ${client.id}`);
@@ -102,9 +101,13 @@ router.get('/avatar/:deviceId', devMw.one, async (req, res) => {
   res.sendFile(avatarPath);
 });
 
-Location.addHook('afterCreate', (location, options) => {
-  console.dir(location);
-  console.dir(options);
+Location.addHook('afterCreate', async (location) => {
+  await async.each(clients, async (client) => {
+    if (client.devices.includes(location.deviceId)) {
+      await sendCurrentLocations(client.devices, client.res);
+    }
+  });
+  const user = await location.getUser();
 });
 
 function createClient(id, devices, res) {
@@ -134,19 +137,16 @@ Data exchange format
 }
 */
 
-async function sendCurrentLocations(userIds, res) {
-  const data = await async.map(userIds, async (userId) => {
-    const user = await User.get(userId);
-    const locs = await Location.getLastByUserId(userId);
-    const formatted = await async.map(locs, async (l) => {
-      const device = await Device.get(l.deviceId);
-      return { id: l.deviceId, name: `${user.username} - ${device.name}`, lat: l.data.lat, lon: l.data.lon, icon: `/map/avatar/${l.deviceId}`, date: l.createdAt };
-    });
-    return formatted;
+async function sendCurrentLocations(deviceIds, res) {
+  const data = await async.map(deviceIds, async (deviceId) => {
+    const lastLoc = await Location.findOne({ where: { deviceId }, order: [['createdAt', 'DESC']], include: [User, Device] });
+    if (!lastLoc) return;
+    const deviceUuid = lastLoc.Device.uuid;
+    return { id: deviceUuid, name: `${lastLoc.User.username} - ${lastLoc.Device.name}`, lat: lastLoc.data.lat, lon: lastLoc.data.lon, icon: `/map/avatar/${deviceUuid}`, date: lastLoc.createdAt.getTime() };
   });
 
   console.log(`data: ${JSON.stringify(data.flat())}`);
-  res.write(`data: ${JSON.stringify(data.flat())}\n\n`);
+  res.write(`data: ${JSON.stringify(data.flat().filter((d) => d))}\n\n`);
 }
 
 function sendPings() {

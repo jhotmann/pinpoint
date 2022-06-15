@@ -28,19 +28,6 @@ module.exports.one = async (req, _, next) => {
   next();
 };
 
-module.exports.all = async (req, res, next) => {
-  if (!req.pageData) req.pageData = {};
-  req.allGroups = await Group.findAll({ include: ['members'] });
-  if (req.allGroups) {
-    req.pageData.allGroups = await async.map(req.allGroups, async (group) => {
-      const data = group.toJSON();
-      data.members = group.members.map((m) => m.toJSON());
-      return data;
-    });
-  }
-  next();
-};
-
 // Depends upon user.one and group.one
 module.exports.admin = async (req, res, next) => {
   if (req?.Group?.adminId && req.Group.adminId === req.User.id) {

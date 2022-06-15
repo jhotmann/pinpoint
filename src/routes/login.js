@@ -11,7 +11,8 @@ router.get('/', (req, res) => {
   res.render('login.html');
 });
 
-router.post('/', async (req, res, next) => {
+// Accepts: application/json or text/html (default)
+router.post('/', async (req, res) => {
   const { username, password } = req.body;
   if (username === 'admin') {
     if (password === process.env.ADMIN_PASSWORD) {
@@ -25,23 +26,42 @@ router.post('/', async (req, res, next) => {
     const user = await User.getByUsername(username);
     if (user) {
       const match = await bcrypt.compare(password, user.passwordHash);
-      if (match) {
-        const token = jwt.sign({ username }, req.envSettings.jwtSecret, { expiresIn: '1y' });
-        res.cookie('authorization', token, { sameSite: 'strict' });
-        const currentUrlHeader = req.get('HX-Current-URL');
-        const currentUrl = new URL(currentUrlHeader);
-        const source = currentUrl.searchParams.get('source');
-        if (source) {
-          const newUrl = decodeURIComponent(source);
-          res.redirect(newUrl);
-        } else {
-          res.redirect('/user');
+      const token = jwt.sign({ username }, req.envSettings.jwtSecret, { expiresIn: '1y' });
+      switch (req.get('Accept')) {
+        case 'application/json':
+          if (match) {
+            res.json({ jwt: token });
+          } else {
+            res.status(401).json({ "response": "Invalid Login" });
+          }
+          break;
+        default:
+          if (match) {
+            res.cookie('authorization', token, { sameSite: 'strict' });
+            const currentUrlHeader = req.get('HX-Current-URL');
+            let source;
+            if (currentUrlHeader) {
+              const currentUrl = new URL(currentUrlHeader);
+              source = currentUrl.searchParams.get('source');
+            }
+            if (source) {
+              const newUrl = decodeURIComponent(source);
+              res.redirect(newUrl);
+            } else {
+              res.redirect('/user');
+            }
+          } else {
+            res.render('login.html', { username, invalidPassword: true });
+          }
         }
-      } else {
-        res.render('login.html', { username, invalidPassword: true });
+    } else { // not a valid user
+      switch (req.accepts(['json', 'html'])) {
+        case 'json':
+          res.status(401).json({ "response": "Invalid Login" });
+          break;
+        default:
+          res.render('login.html', { invalidUsername: true });
       }
-    } else {
-      res.render('login.html', { invalidUsername: true });
     }
   }
 });

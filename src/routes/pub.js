@@ -2,15 +2,12 @@ const async = require('async');
 const express = require('express');
 const userMw = require('../middleware/user');
 const mqtt = require('../mqtt');
-const { User, Device, CardSeen, Location, Friend } = require('../db');
+const { User, Device, CardStatus, Location, Friend } = require('../db');
 
 const router = express.Router();
 
 router.post('/', userMw.one, async (req, res) => {
-  if (typeof req.body === 'object' && req.body?._type === 'ping') {
-    // TODO reply with sharer's locations
-    res.send('Got it');
-  } else if (typeof req.body === 'object' && req.body?._type === 'location') {
+  if (typeof req.body === 'object' && req.body?._type === 'location') {
     const deviceName = deviceNameFromTopic(req.user.username, req.body.topic);
     const userDevice = req.pageData.userDevices.find((device) => device.name === deviceName);
     if (!userDevice) {
@@ -24,7 +21,7 @@ router.post('/', userMw.one, async (req, res) => {
 
     // Publish to friends MQTT topics
     if (req.envSettings.mqttEnabled) {
-      const friends = await User.findAll({ include: { model: Friend, as: 'friends', where: { userId: req.User.id } } });
+      const friends = req.User.friends;
       const groupies = req.User.groups.map((g) => g.members).flat();
       friends.concat(groupies).forEach((friend) => {
         console.log(`Publishing location to ${friend.username}/${req.User.username}/${deviceName}: ${JSON.stringify(req.body)}`);
@@ -37,28 +34,20 @@ router.post('/', userMw.one, async (req, res) => {
     }
 
     // Loop through all people that share with the user who just posted their location
-    const sharers = await req.User.getUsersSharingWith();
-    if (!sharers.includes(req.User._id)) sharers.push(req.User._id);
-    await async.eachSeries(sharers, async (sharer) => {
-      const lastLocs = await Location.getLastByUserId(sharer); // Get last location for all devices for the user
-      console.log(`Sharer ${sharer} has ${lastLocs.length} location(s) to share`)
-      await async.eachSeries(lastLocs, async (lastLoc) => {
-        if (lastLoc?.data) {
-          returnData.push(lastLoc.data); // Add last location to return payload
-          if (!returnUsernames.includes(lastLoc.username)) returnUsernames.push(lastLoc.username);
-          // Get the  device data if card not seen
-          const seen = await CardSeen.findOne({ deviceId: lastLoc.deviceId, seerId: req.User._id });
-          if (!seen?.seen) {
-            const device = await Device.findOne({ _id: lastLoc.deviceId });
-            if (device?.card) { // If device has a card, return the data and mark as seen
-              console.log('Adding card data to playload');
-              returnData.push(device.card);
-              await CardSeen.see(device._id, req.User._id);
-            }
-          }
-        }
-      });
+    const sharingDevices = await req.User.getDevicesSharingWith();
+    await async.each(sharingDevices, async (deviceId) => {
+      const lastLoc = await Location.findOne({ where: { deviceId }, order: [['createdAt', 'DESC']], include: [User, Device] });
+      if (!lastLoc?.data) return;
+      returnData.push(lastLoc.data);
+      if (!returnUsernames.includes(lastLoc.User.username)) returnUsernames.push(lastLoc.User.username);
+      const cardStatus = await CardStatus.findOne({ where: { deviceId, userId: req.User.id } });
+      if (!cardStatus?.seen) {
+        const card = await lastLoc.Device.card;
+        returnData.push(card);
+        await CardStatus.see(deviceId, req.User.id);
+      }
     });
+    
     console.log(`Returning ${returnUsernames.length} user location(s): ${returnUsernames.join(', ')}`);
     console.log(`Response size ${JSON.stringify(returnData).length} bytes`);
     return res.send(returnData);
